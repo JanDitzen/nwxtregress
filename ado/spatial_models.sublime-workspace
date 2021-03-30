@@ -1,0 +1,1246 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"nw",
+				"nwxtregress"
+			],
+			[
+				"grid",
+				"gridr"
+			],
+			[
+				"n",
+				"nomit"
+			],
+			[
+				"asa",
+				"asarray"
+			],
+			[
+				"input",
+				"inputvar"
+			],
+			[
+				"inp",
+				"inputfix"
+			],
+			[
+				"output",
+				"output_matrix"
+			],
+			[
+				"out",
+				"output_matrix"
+			],
+			[
+				"varname",
+				"varnames"
+			],
+			[
+				"var",
+				"varnames"
+			],
+			[
+				"total",
+				"total_sum"
+			],
+			[
+				"direc",
+				"direct_j"
+			],
+			[
+				"ndr",
+				"ndraws-nomit"
+			],
+			[
+				"nod",
+				"ndraws-nomit"
+			],
+			[
+				"cal",
+				"calc_DIEffects"
+			],
+			[
+				"res_",
+				"res_matX"
+			],
+			[
+				"X",
+				"XNuniq"
+			],
+			[
+				"e",
+				"e0"
+			],
+			[
+				"R2",
+				"R2adj"
+			],
+			[
+				"res",
+				"residuals"
+			],
+			[
+				"Spare",
+				"SparseXSparse"
+			],
+			[
+				"as",
+				"asarray_create"
+			],
+			[
+				"wj",
+				"wjjju"
+			],
+			[
+				"Spar",
+				"SparseMultiply"
+			],
+			[
+				"Barr",
+				"BarryPace"
+			],
+			[
+				"Ba",
+				"BarryPace"
+			],
+			[
+				"ba",
+				"barrypace"
+			],
+			[
+				"barr",
+				"BArrypace"
+			],
+			[
+				"trace",
+				"tracew"
+			],
+			[
+				"W",
+				"Weight"
+			],
+			[
+				"Sparse",
+				"Sparse"
+			],
+			[
+				"Spa",
+				"Sparse"
+			],
+			[
+				"spma",
+				"spmati"
+			],
+			[
+				"p",
+				"pointbypoint"
+			],
+			[
+				"Spars",
+				"Sparse2"
+			],
+			[
+				"ma",
+				"maxorder"
+			],
+			[
+				"cap",
+				"capture"
+			],
+			[
+				"bd",
+				"bdraws"
+			],
+			[
+				"sd",
+				"sdraws"
+			],
+			[
+				"uniq",
+				"uniqrows"
+			],
+			[
+				"index",
+				"indexj"
+			],
+			[
+				"select",
+				"selectindex"
+			],
+			[
+				"unqi",
+				"uniqueid"
+			],
+			[
+				"selec",
+				"selectindex"
+			],
+			[
+				"sel",
+				"select"
+			],
+			[
+				"sele",
+				"selectindex"
+			],
+			[
+				"ind",
+				"indext"
+			],
+			[
+				"time",
+				"timesparse"
+			],
+			[
+				"Wui",
+				"Wuniq"
+			],
+			[
+				"uni",
+				"uniqrows"
+			],
+			[
+				"elemen",
+				"element_i"
+			],
+			[
+				"is",
+				"issparse"
+			],
+			[
+				"sort",
+				"sortsi"
+			],
+			[
+				"Grid",
+				"GriddyGibbs"
+			],
+			[
+				"sige",
+				"sigeAI"
+			],
+			[
+				"sig",
+				"sigeAI"
+			],
+			[
+				"gr",
+				"gridlength"
+			],
+			[
+				"tra",
+				"transmorphic"
+			],
+			[
+				"rho",
+				"rhoW"
+			],
+			[
+				"g",
+				"gridlength"
+			],
+			[
+				"unique",
+				"uniquet"
+			],
+			[
+				"spatial",
+				"spatialLag"
+			],
+			[
+				"Order",
+				"OrderW"
+			],
+			[
+				"un",
+				"uniqueT"
+			],
+			[
+				"stu",
+				"studentize"
+			],
+			[
+				"stud",
+				"studentizeT"
+			],
+			[
+				"inde",
+				"index_row_nonmiss"
+			],
+			[
+				"counte",
+				"counteri"
+			],
+			[
+				"timer",
+				"timer_off"
+			],
+			[
+				"count",
+				"counteri"
+			],
+			[
+				"non",
+				"nonmiss"
+			],
+			[
+				"N",
+				"Nuniq"
+			],
+			[
+				"no",
+				"Normalisation"
+			],
+			[
+				"OrderWt",
+				"OrderWtUn"
+			],
+			[
+				"Wfin",
+				"Wfin_End"
+			],
+			[
+				"Wfi",
+				"Wfin_Start"
+			],
+			[
+				"Wf",
+				"Wfin_Start"
+			],
+			[
+				"Calc",
+				"CalcCI"
+			],
+			[
+				"Br",
+				"BreaksToTest"
+			],
+			[
+				"off",
+				"offdiagonal"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "nwxtregress.ado",
+			"settings":
+			{
+				"buffer_size": 780,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "nwxtreg.ado",
+			"settings":
+			{
+				"buffer_size": 110,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "nwxtregress_estat.ado",
+			"settings":
+			{
+				"buffer_size": 2687,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "_sparse_matrix_op.do",
+			"settings":
+			{
+				"buffer_size": 7894,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "_nwxtregsar.ado",
+			"settings":
+			{
+				"buffer_size": 29173,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/find_error_v1_16-03-2021.do",
+			"settings":
+			{
+				"buffer_size": 1091,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "_spatial_models_aux.do",
+			"settings":
+			{
+				"buffer_size": 4558,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "capture program drop nwxtset\nprogram define nwxtset, rclass\n\tsyntax varlist(ts min=2) [if], ///\n\t\t\t\t\t\t\t\tweights(string)\n\nend",
+			"settings":
+			{
+				"buffer_size": 124,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "_direct_indirect_BP.do",
+			"settings":
+			{
+				"buffer_size": 4592,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "_output.do",
+			"settings":
+			{
+				"buffer_size": 7278,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_computstat_data.do",
+			"settings":
+			{
+				"buffer_size": 643,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_computstat.do",
+			"settings":
+			{
+				"buffer_size": 1116,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/StataEditor/Execute in Stata.sublime-build",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"git",
+				"Git: Init"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"packa",
+				"Package Control: Remove Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"packe remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"git remove",
+				"Package Control: Remove Repository"
+			],
+			[
+				"stata reg",
+				"Stata: Register Stata Automation"
+			],
+			[
+				"stata",
+				"Stata: Change the path of the executable"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				"install pack",
+				"Package Control: Install Package"
+			],
+			[
+				"repo",
+				"Package Control: Add Repository"
+			],
+			[
+				"remove pack",
+				"Package Control: Remove Package"
+			],
+			[
+				"add repo",
+				"Package Control: Add Repository"
+			],
+			[
+				"bwo",
+				"Browse Mode: Outline (Left)"
+			],
+			[
+				"brow",
+				"Browse Mode: Outline (Left)"
+			],
+			[
+				"package control:",
+				"Package Control: Install Package"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
+			[
+				"packl",
+				"Package Control: List Packages"
+			],
+			[
+				"Install Package Control",
+				"Package Control: Install Package"
+			],
+			[
+				"Install ",
+				"Install Package Control"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 157.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Data",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test"
+	],
+	"file_history":
+	[
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_estimatesar_simData_timesparse.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_estimatesar_simData_mataW.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_computstat_data.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/Stata USM/spregress.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_estimatesar_subprograms.do",
+		"/D/mixed/SimonReese_Star.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/speed_test_sparse_v1.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/test_spline.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/test_program_pointer.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/speed_test_sparse.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/test_lu_decomposition.do",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Data/TNIC2017.csv",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/spatial_models.sublime-workspace",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/spatial_models.sublime-project",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/User/Side Bar.sublime-settings",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/spatial_models_aux.ado",
+		"/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/ado/estimatesar.ado",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/ado/xtbreak_tests.ado",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/ado/xtbreak_auxiliary.ado",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/mc_code.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/test/test_mc_single run.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/test/test_mc_h3.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/results/result plot.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/Power_Size_20-11-2020.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/Power_Size_h3_20-11-2020.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/test/test_mc.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/simulation/results/consolidate data.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/ado/dynamic_prog.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/ado/xtbreak_estimate.ado",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/DKW/Stata/ado/xtbreak.ado",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Settings/SideBarEnhancements.json",
+		"/D/Projects/highdimensional/mc simulation/test.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/CEERP/Research/HAC_Lasso/Monte Carlo Simulation/do files/simulation_program.do",
+		"/D/Projects/highdimensional/mc simulation/mc_prog.do",
+		"/D/Projects/highdimensional/mc simulation/mc_prog2.do",
+		"/C/Users/jan/Dropbox (Heriot-Watt University Team)/CEERP/Research/HAC_Lasso/Monte Carlo Simulation/do files/simulation runs/Run_28_02_2020.do",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/StataEditor/StataEditor.sublime-settings",
+		"/c/users/jan/appdata/local/temp/st_stata_help.txt",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/User/StataEditor.sublime-settings",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/Stata Enhanced/Default (Windows).sublime-keymap",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/User/Stata.sublime-settings",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/SideBarEnhancements/Side Bar.sublime-settings",
+		"/C/Users/jan/clear.do",
+		"/C/Users/jan/AppData/Roaming/Sublime Text 3/Packages/User/Stata Enhanced.sublime-settings"
+	],
+	"find":
+	{
+		"height": 39.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"output_matrix",
+			"colsum",
+			"lud",
+			"asarray_create(grid_r,real)",
+			"drawnorm",
+			"lud",
+			"initgrid",
+			"det",
+			"_studentizeT",
+			"Wnorm",
+			"_dot",
+			"dot",
+			"lud",
+			"LUD",
+			"barry",
+			"lud",
+			"timer_on(90)",
+			"barry",
+			"calc_DIEffects",
+			"estat",
+			"BarryPace",
+			"iteration",
+			"row i",
+			"\"init grid done\"",
+			"SparseMultiply",
+			"olsp",
+			"timer_on(92)",
+			"timer_on(12)",
+			"timer_on(30)",
+			"timer_on(90)",
+			"timer_on(30)",
+			"timer_on(12)",
+			"timer_on(10)",
+			"BarryPace",
+			"BP done",
+			"sparse case, order of W not important",
+			"indexu",
+			"sparse case, order of W not important",
+			"array",
+			"LUD",
+			"rhoW",
+			"array",
+			"initgrid",
+			"LUD",
+			"grid done",
+			"initgrid",
+			"LUD",
+			"B is",
+			"rhoWIminus",
+			"SparseUndefine",
+			"LoadData",
+			"SparseDefine",
+			"SparseUndefine",
+			"normalise",
+			"uniqrowsMat",
+			"SparseUndefine",
+			"sparseun",
+			"SparseMultiply",
+			"search",
+			"SparseMultiply",
+			"drawnorm",
+			"ccep",
+			"is arra",
+			"on real case",
+			"\t\t(*",
+			"detval",
+			"LoadData",
+			"ORderW",
+			"mm_which",
+			"initgrid",
+			"rhoWIminus",
+			"initgrid",
+			"spatiallag",
+			"spatialLag",
+			"SparseMultiply",
+			"Wnorm",
+			"grid",
+			"ccep",
+			"pointer",
+			"OrderW",
+			"SparseMultiply",
+			"spatialLag",
+			",,",
+			"spatial lag",
+			"point(matrix) sorter",
+			" = uniqrows(idt[inde",
+			"ndex(den : <= rnd)",
+			"xpx) + sige*TI)) * ((*XX) + sige * T",
+			"ter((*XX) + sige * TI))*",
+			"Wnorm",
+			"psave = J(ndraws,1,)",
+			"OrderW",
+			"_makesymmetric",
+			"rhoW",
+			"start",
+			"point(function) f",
+			"1k"
+		],
+		"highlight": false,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"(*detval)",
+			"2u",
+			"1u"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": false
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "nwxtregress.ado",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 780,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								750,
+								750
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "nwxtreg.ado",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 110,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								110,
+								110
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "nwxtregress_estat.ado",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2687,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								412,
+								412
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "_sparse_matrix_op.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7894,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1606,
+								1606
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 777.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 4,
+					"file": "_nwxtregsar.ado",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 29173,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								170,
+								170
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/find_error_v1_16-03-2021.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1091,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								941,
+								941
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 434.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "_spatial_models_aux.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4558,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								656,
+								656
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 124,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								119,
+								119
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"default_dir": "C:\\Users\\jan\\Dropbox (Personal)\\Spatial Models in Stata\\Stata\\ado",
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "_direct_indirect_BP.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4592,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2312,
+								2321
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "_nwxtregsar.ado",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 29173,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								26454,
+								26460
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 15147.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "_output.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7278,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5748,
+								5748
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1904.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 10,
+					"file": "/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_computstat_data.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 643,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								248,
+								248
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 11,
+					"file": "/C/Users/jan/Dropbox (Personal)/Spatial Models in Stata/Stata/test/test_computstat.do",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1116,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								743
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/StataEditor/Syntax Definition/StataEditor.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 89.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 39.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			],
+			[
+				0,
+				1,
+				1,
+				2
+			],
+			[
+				1,
+				1,
+				2,
+				2
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.522669296806,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			0.682597641734,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "spatial_models.sublime-project",
+	"replace":
+	{
+		"height": 70.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"mc_prog.do"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 518.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"C:\\Users\\jan\\Dropbox (Heriot-Watt University Team)\\DKW\\Stata\\ado\\xtbreak.sublime-project"
+			]
+		],
+		"width": 385.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 587.0
+	},
+	"selected_group": 3,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 209.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+		"max_columns": 2
+	}
+}
