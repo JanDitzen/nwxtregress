@@ -7,7 +7,18 @@
 
 {p 4 4}{cmdab:nwxtreg:ress} - Network Regressions in Stata with unbalanced panel data and time varying network structures or spatial weight matrices..{p_end}
 
-{title:Syntax}
+{title:Contents}
+{p 4}{help nwxtregress##syntax:Syntax}{p_end}
+{p 4}{help nwxtregress##description:Description}{p_end}
+{p 4}{help nwxtregress##options:Options}{p_end}
+{p 4}{help nwxtregress##DIE:Direct, Indirect and Total Effects}{p_end}
+{p 4}{help nwxtregress##saved_vales:Saved Values}{p_end}
+{p 4}{help nwxtregress##examples:Examples}{p_end}
+{p 4}{help nwxtregress##references:References}{p_end}
+{p 4}{help nwxtregress##about:About, Authors and Version History}{p_end}
+
+
+{marker syntax}{title:Syntax}
 
 {p 4}{ul:Spatial Autocorrelation Model (SAR)}{p_end}
 
@@ -38,7 +49,6 @@ and independent variables.
 {p 8}{cmd:version} displays version. 
 {cmd:update} updates {cmd:nwxtregress} from {browse "https://janditzen.github.io/nwxtregress/":GitHub}
 using {help net install}.{p_end}
-
 
 {p 4}{ul:General Options}{p_end}
 {synoptset 20}{...}
@@ -73,15 +83,6 @@ using {help net install}.{p_end}
 {p2colreset}{...}
 
 {p 4 4}Data has to be xtset before using {cmd:nwxtregress}; see {help xtset}. {depvars} and {indepvars}  may contain time-series operators, see {help tsvarlist}.{p_end}
-
-{title:Contents}
-{p 4}{help nwxtregress##description:Description}{p_end}
-{p 4}{help nwxtregress##options:Options}{p_end}
-{p 4}{help nwxtregress##DIE:Direct, Indirect and Total Effects}{p_end}
-{p 4}{help nwxtregress##saved_vales:Saved Values}{p_end}
-{p 4}{help nwxtregress##examples:Examples}{p_end}
-{p 4}{help nwxtregress##references:References}{p_end}
-{p 4}{help nwxtregress##about:About, Authors and Version History}{p_end}
 
 {marker description}{title:Description}
 
