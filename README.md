@@ -205,6 +205,13 @@ The latest version of the ***nwxtregress*** package can be obtained by typing in
 net from https://janditzen.github.io/nwxtregress/
 ``` 
 
+or 
+
+```
+net install nwxtregress , from(https://janditzen.github.io/nwxtregress/)
+
+```
+
 # 9. Questions?
 
 Questions? Feel free to write us an email, open an [issue](https://github.com/JanDitzen/nwxtregress/issues) or [start a discussion](https://github.com/JanDitzen/nwxtregress/discussions).
