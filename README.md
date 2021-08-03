@@ -33,7 +33,9 @@ nwxtregress depvar  indepvars [if],
         [mcmcoptions nosparse]
 ```
 
-Data has to be ```xtset``` before use. W1 and Ws define the spatial weight matrix, default is ***Sp*** object. ```dvarlag()``` is repeatable and multiple spatial weight matrices are supported.
+Data has to be ```xtset``` before use. W1 and Ws define the spatial weight matrix, default is ***Sp*** object.
+```dvarlag()``` and ```ivarlag()``` define the spatial lag of the dependent and independent variables.
+ ```dvarlag()``` is repeatable and multiple spatial weight matrices are supported.
 
 #### Options for ```ivarlag()``` and ```dvarlag()```
 

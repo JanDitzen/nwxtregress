@@ -26,7 +26,10 @@
     {cmd:nosparse}]
 {p_end}
 
-{p 4 13}where {cmd:W1} and {cmd:W2} are spatial weight matrices. Default is {help Sp} object. {cmd:ivarlag()} is repeatable with different spatial weights.{p_end}
+{p 4 13}where {cmd:W1} and {cmd:W2} are spatial weight matrices. Default is {help Sp} object.
+{cmd:dvarlag()} and {cmd:ivarlag()} define the spatial lag of the dependent
+and independent variables. 
+{cmd:ivarlag()} is repeatable with different spatial weights.{p_end}
 
 {p 4}{ul: Maintenance}{p_end}
 
