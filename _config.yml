@@ -1,1 +1,4 @@
 theme: jekyll-theme-minimal
+include:
+  - "_*.html"
+  - "_*.ado"
