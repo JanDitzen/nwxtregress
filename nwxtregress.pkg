@@ -15,3 +15,6 @@ f ado\_spatial_models_aux.ado
 f ado\_nwxtreg_output.ado     
 f ado\_sparse_matrix_op.ado     
 f ado\_direct_indirect_BP.ado
+f ado\nwxtregress.sthlp
+f ado\nwxtregress.ihlp
+f ado\nwxtreg.sthlp
