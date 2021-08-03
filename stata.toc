@@ -1,0 +1,7 @@
+v 3
+d Jan Ditzen, Free University of Bozen-Bolzano, jan.ditzen@unibz.it, jan.ditzen.net
+d joint work with:
+d William Grieser, Texas Christian University, w.grieser@tcu.edu, https://www.williamgrieser.com/
+d Morad Zekhnini, Michigan State University, zekhnini@msu.edu, https://sites.google.com/view/moradzekhnini/home
+
+p nwxtregress Estimation of spatial or network models with time varying network structure (spatial weights) and unabalanced datasets.
