@@ -16,67 +16,110 @@ end
 // -------------------------------------------------------------------------------------------------
 capture program drop spmat_set
 program define spmat_set
-	syntax anything(name=wname_init) , [mata id(string) sparse timesparse isdep] varlist(string) arrayname(string)
+	syntax anything(name=wname_init) , [mata frame(string) id(string) sparse timesparse isdep NORMalize(string)] varlist(string) arrayname(string) [wname(string)]
 
-	tempname w_ary wname
+	if "`mata'" != "" & "`frame'" != "" {
+		noi disp as error in smcl "Options {it:mata} and {it:frame} cannot be combined."
+		error 184
+	}
+	if "`wname'" == "" {
+		tempname wname
+	}
+	tempname w_ary 
 	mata: `w_ary' = asarray_create()
-
 
 	if "`sparse'" != "" & "`timesparse'" != "" {
 	*** time sparse implies sparse
 			local sparse ""
 	}
 
-	if "`mata'" == "" {
+
+	
+	if "`mata'" == "" & "`frame'" == "" {
+		/// spmat
 		tempname w_id 
 		spmatrix matafromsp `wname' `w_id' = `wname_init'
 		mata asarray(`w_ary',"W_id",`w_id')
 		mata asarray(`w_ary',"W",`wname')
 	}
-	else {
-		mata asarray(`w_ary',"W",`wname_init')
-		mata `wname' = `wname_init'
-	}
-
-	if "`id'" == "" {
+	else if "`mata'" == "" & "`frame'" != "" {
+		/// frame
 		if "`sparse'`timesparse'" == "" {
-			/// here correct!
-			mata asarray(`w_ary',"W_id",(1::rows(`wname')))
+			frame `frame': mata asarray(`w_ary',"W",st_data(.,"`wname_init'"))
+			frame `frame': mata asarray(`w_ary',"W_id",1::rows(st_data(.,"`wname_init'")))
 		}
-		else if "`sparse'" != "" & "`timesparse'" == "" {
-			mata asarray(`w_ary',"W_id",uniqrows(`wname'[.,1]))
+		else {
+			if "`id'" == "" {
+				noi disp as error in smcl "Option {it:id()} required."
+				error 198
+			}
 		}
-		else if "`sparse'" == "" & "`timesparse'" != "" {
-			mata asarray(`w_ary',"W_id",uniqrows(`wname'[.,2]))
-		} 
+		tempname data idt
+		frame `frame': mata `data' = st_data(.,"`wname_init'")
+		frame `frame': mata `idt' = st_data(.,"`id'")
+
+		mata asarray(`w_ary',"W",(`idt',`data'))
+
+		mata mata drop `data' `idt'
+		
+		tempname w_id
+		frame `frame': mata `w_id' = st_data(.,"`id'")
+		
+		local wname_init = word("`wname_init'",1)
+		local wname  "`wname_init'"
+
+		if "`timesparse'" != "" mata asarray(`w_ary',"W_id",uniqrows(`w_id'[.,2]))
+		if "`sparse'" != "" 	mata asarray(`w_ary',"W_id",uniqrows(`w_id'[.,1]))		
+ 		
 	}
-	else {
-		mata asarray(`w_ary',"W_id",`id')
+	else if "`mata'" != "" & "`frame'" == "" {
+		mata asarray(`w_ary',"W",`wname_init')
+		mata `wname' = `wname_init'	
+
+		if "`id'" == "" {
+			if "`sparse'`timesparse'" == "" {
+				mata asarray(`w_ary',"W_id",(1::rows(`wname_init')))
+			}
+			else if "`sparse'" != "" & "`timesparse'" == "" {
+				mata asarray(`w_ary',"W_id",uniqrows(`wname_init'[.,1]))
+			}
+			else if "`sparse'" == "" & "`timesparse'" != "" {
+				mata asarray(`w_ary',"W_id",uniqrows(`wname_init'[.,2]))
+			} 
+		}
+		else {
+			mata asarray(`w_ary',"W_id",`id')
+		}
 	}
 
-	*** 1 if W is sparse
-	if "`sparse'`timesparse'" == "" {
-		mata asarray(`w_ary',"sparse",0)
-	}
- 	else if "`sparse'" != "" {
- 		mata asarray(`w_ary',"sparse",1)
-	}
-	else if "`timesparse'" != ""  {
-		mata asarray(`w_ary',"sparse",2)
-	}
+	*** Sparse indicator
+	if "`sparse'`timesparse'" == "" mata asarray(`w_ary',"sparse",0)
+ 	else if "`sparse'" != "" 		mata asarray(`w_ary',"sparse",1)
+	else if "`timesparse'" != ""  	mata asarray(`w_ary',"sparse",2)
+	
+
+	*** which normalisation
+	if "`normalize'" == ""  				mata asarray(`w_ary',"norm",1)
+	else if "`normalize'" == "none"			mata asarray(`w_ary',"norm",0)
+	else if "`normalize'" == "row" 			mata asarray(`w_ary',"norm",1)
+ 	else if regexm("`normalize'","col*") 	mata asarray(`w_ary',"norm",2)
+	else if regexm("`normalize'","spec*")  	mata asarray(`w_ary',"norm",3)
+	else if regexm("`normalize'","minmax")  mata asarray(`w_ary',"norm",4)	
+	
 
 	mata asarray(`w_ary',"vars","`varlist'")
 	mata asarray(`w_ary',"isdepvar",("`isdep'"!=""))
+
 	if "`isdep'" != "" {
 		mata asarray(`w_ary',"Wyname","`wname_init'")
 		mata asarray(`arrayname',"Wy",`w_ary')
-
 	}
 	else {
 		mata asarray(`w_ary',"Wyname","`wname_init'")
 		mata asarray(`arrayname',"`wname'",`w_ary')
 	}
-	mata mata drop `w_ary' `wname'
+	cap mata mata drop `w_ary' 
+	*cap mata mata drop `wname'
 end
 
 
@@ -319,8 +362,8 @@ mata:
 							real matrix pdraws,					///
 							real matrix e0,						///
 							real matrix ed,						///
-							real scalar ng, 						///
-							transmorphic  matrix gridr 					///
+							real scalar ng, 					///
+							transmorphic  matrix gridr 			///
 							)
 
 	{
@@ -485,10 +528,12 @@ mata:
 		ngrid = rows(rgrid)
 		detval = J(ngrid,2,.)	
 		
-		cmd = sprintf("noi _dotspct 0 , title(Initialise Grid) reps(%s)",strofreal(ngrid))	
+		cmd = sprintf("noi _dotspct 0 , title(Initialise Grid) reps(%s)",strofreal(ngrid+1))	
 		stata(cmd)
 
 		if (BarryPace[1,1]:== 0) {
+"do LUD"
+issparse
 
 			i=1
 			while (i<=ngrid) {			
@@ -507,6 +552,7 @@ mata:
 
 				i++
 			}
+			trace = .
 		}	
 		else {
 			i = 1
@@ -518,7 +564,7 @@ mata:
 				///	detm = detm + BarryPace(W,idt,T,N,BarryPace[1],BarryPace[2],issparse)
 				"BP res"
 				///BarryPace(W,idt,T,N,BarryPace[1],BarryPace[2],issparse)
-				trace =  BarryPace(W,idt,T,N,BarryPace[1],BarryPace[2],issparse,sdm)
+				trace =  BarryPace(W,idt,T,N,BarryPace[1],BarryPace[2],issparse,sdm,0)
 				detm = sum(log(trace))
 				///}
 				timer_off(90)
@@ -691,6 +737,7 @@ mata:
 						real scalar issparse	///
 					)
 	{
+		rownorm
 		if (issparse==2) unablanced = 1
 
 		///if (unbalanced == 0 ) {
@@ -841,7 +888,7 @@ mata:
 			"sort"
 			
 			SortW = SortW[selectindex(SortW:!=.)]
-cols(W),rows(W)
+
 			W_sorted = W[SortW,SortW]
 			W_sorted = J(T,1,1)#W_sorted
 		}
@@ -849,6 +896,103 @@ cols(W),rows(W)
 		return(W_sorted)
 	}
 end
+
+// -------------------------------------------------------------------------------------------------
+// GetArrayName
+// -------------------------------------------------------------------------------------------------
+cap program drop GetArrayName
+program define GetArrayName
+syntax [anything]
+
+	if "`anything'" == "" {
+		local anything "_NWXTREG_OBJECT"
+	}
+
+ 	cap mata asarray_contains(`anything', "W")
+
+	if _rc != 0 {
+		c_local asarray `anything'
+	}
+	else {
+		local i = 0
+		while _rc == 0 {
+			local i = `i' + 1
+			cap mata asarray_contains(`anything'`i', "W")			
+		}
+		c_local asarray `anything'`i'
+	}
+end
+
+
+
+// -------------------------------------------------------------------------------------------------
+// DataTransform
+// -------------------------------------------------------------------------------------------------
+capture mata mata drop _DataTransform()
+mata: 
+	function _DataTransform (
+								real matrix Y, 			///
+								real matrix X, 			///
+								real matrix idt, 		///
+								real matrix uniqueT,	///
+								real matrix settings,	///
+								real scalar T, 			///
+								string scalar Varnames,	///
+								real scalar K
+								)
+	{
+		/// settings has 1: has FE, 2: NOCONST, 3: Standardize		
+
+		/// fixed effects
+		if (settings[1]:==1) {
+			/// remove FE
+			YX = DemeanUnits((Y,X),idt)
+			Y = YX[.,1]
+			X = YX[.,2..cols(YX)]
+		}
+		
+		/// standardize
+		if (settings[3]:==1) {
+			_studentizeT(Y,T,idt,uniqueT)
+			_studentizeT(X,T,idt,uniqueT)
+		}
+
+		/// remove constant
+		if (settings[2]:==1) {
+			Y = Y :- mean(Y)
+			X = X :- mean(X)
+		}
+		else  {
+			X = X,J(rows(X),1,1)
+			K = K + 1
+			Varnames = invtokens((tokens(Varnames),"_cons"))
+		}
+
+	}
+end
+
+// -------------------------------------------------------------------------------------------------
+// demean units
+// -------------------------------------------------------------------------------------------------
+
+capture mata mata drop DemeanUnits()
+mata: 
+function DemeanUnits(real matrix mat, real matrix idt)
+	{
+		index = panelsetup(idt,1)
+		N = rows(index)
+
+		/// within transformation
+		i = N
+		while (i>0) {
+			mati = panelsubmatrix(mat,i,index)
+			mat[|index[i,1],. \ index[i,2],.|] = mati :-  mean(mat)
+			i--
+		}
+		return(mat)
+	}
+end
+
 // -------------------------------------------------------------------------------------------------
 // LoadData
 // -------------------------------------------------------------------------------------------------
@@ -901,6 +1045,28 @@ mata:
 	}
 end
 
+///function returns only largest eigenvalue
+capture mata mata drop MaxEV()
+mata:
+	function MaxEV(real matrix mat)
+	{
+		eigensystem(mat,tmp=.,ev=.)
+		return(max(Re(ev)))
+	}
+end
+
+/// minmax of 
+capture mata mata drop MinMaxRC()
+mata:
+	function MinMaxRC(real matrix mat)
+	{
+		cols = max(quadcolsum(mat))
+		rows = max(quadrowsum(mat))
+		return(min((cols,rows)))
+	}
+end
+
+
 // -------------------------------------------------------------------------------------------------
 // Normalisation
 // -------------------------------------------------------------------------------------------------
@@ -908,98 +1074,122 @@ end
 capture mata mata drop Wnorm()
 mata:
 	function Wnorm(	 transmorphic matrix mat, 	/// 	
-					real scalar type,			/// 1: for row normalisation
+					real scalar type,			/// 0: nothing, 1: for row normalisation, 2: column, 3: spectral
 					real scalar issparse		/// 1: sparse matrix 
 					)
 
 
 	{
-		if (issparse == 1) {
-			"normalise sparse matrix"
-			if (type == 1)	{
-				"row norm"
-				loc = (1,2)
-				
-			}
-			else {
-				"col norm"
-				loc = (2,1)
-			}
-
-			if (eltype(mat) == "real") {
-				"is real"
-				mat = Wnormi(mat,loc)
-			} 
-			else {
-				"non real"
-				keys = sort(asarray_keys(mat),1)
-				nkeys = rows(keys)
-				i = 1
-				while (i<= nkeys) {
-					Wi = asarray(mat,keys[i])
-					
-					/// remove diagonals
-					Wi = Wi[selectindex(Wi[.,1]:!=Wi[.,2]),.]
-					Wi = Wnormi(Wi,loc,ki=.)
-					asarray(mat,keys[i],Wi)
-					
-					
-					i++
+		
+		if (type > 0 ) {
+			if (issparse == 1) {
+				"normalise sparse matrix"
+				if (type == 1)	{
+					"row norm"
+					loc = (1,2)
+					spec = 0					
 				}
-			}
-
-		}
-		else {
-			pointer(function) fn
-
-			if (type == 1) {
-				fn = &myrowsum()
-			}
-			else {
-				fn = &mycolsum()
-			}
-				
-			if (eltype(mat) == "real") {
-				mat = mat:/(*fn)(mat)
-			}
-			else {
-				keys = asarray_keys(mat)
-				nkeys = rows(keys)
-				i = 1
-				while (i<= nkeys) {
-					Wi = asarray(mat,keys[i])
-					Wi = Wi :/ (*fn)(Wi)
-					asarray(mat,keys[i],Wi)
-					i++
+				else if (type == 2) {
+					"col norm"
+					loc = (2,1)
+					spec = 0
 				}
+				else if (type == 3) {
+					"spectral"
+					loc = (1,2)
+					spec = 1
+				}
+				else if (type == 4) {
+					"min max"
+					loc = (1,2)
+					spec = 2
+				}
+
+				if (eltype(mat) == "real") {
+					"is real"
+					mat = Wnormi(mat,loc,spec)
+				} 
+				else {
+					"non real"
+					keys = sort(asarray_keys(mat),1)
+					nkeys = rows(keys)
+					i = 1
+					while (i<= nkeys) {
+						Wi = asarray(mat,keys[i])
+						
+						/// remove diagonals
+						Wi = Wi[selectindex(Wi[.,1]:!=Wi[.,2]),.]
+						Wi = Wnormi(Wi,loc,spec)
+						asarray(mat,keys[i],Wi)						
+						
+						i++
+					}
+				}
+
 			}
+			else {
+				pointer(function) fn
+
+				if (type == 1) {
+					fn = &myrowsum()
+				}
+				else if (type == 2) {
+					fn = &mycolsum()
+				}
+				else  if (type == 3) {
+					fn = &MaxEV()
+				}
+				else  if (type == 4) {
+					fn = &MinMaxRC()
+				}
+
+				if (eltype(mat) == "real") {
+					mat = mat:/(*fn)(mat)
+				}
+				else {
+					keys = asarray_keys(mat)
+					nkeys = rows(keys)
+					i = 1
+					while (i<= nkeys) {
+						Wi = asarray(mat,keys[i])
+						Wi = Wi :/ (*fn)(Wi)
+						asarray(mat,keys[i],Wi)
+						i++
+					}
+				}
+			}			
 		}
 		return(mat)
 	}
-
 end
 
 capture mata mata drop Wnormi()
 mata:
-	function Wnormi(real matrix mat, real matrix loc,real matrix kk)
+	function Wnormi(real matrix mat, real matrix loc,real matrix spec)
 	{
 		
+		if (spec:==0) {
+			mat = sort(mat,(loc))
+			index = panelsetup(mat,loc[1])
+			i = panelstats(index)[1]
 
-		mat = sort(mat,(loc))
-		index = panelsetup(mat,loc[1])
-		i = panelstats(index)[1]
-kk = .,.,.
-		while (i>0) {			
-			wi = panelsubmatrix(mat,i,index)
-			ws = quadsum(wi[.,3])
-			ws = ws + (ws==0)	
-			kk = kk \ (i,ws,rows(wi))
-			///i
-			
-			
-			mat[|index[i,1],3 \ index[i,2],3|] = wi[.,3] :/ ws
-			///
-			i--
+			while (i>0) {			
+				wi = panelsubmatrix(mat,i,index)
+				ws = quadsum(wi[.,3])
+				
+				mat[|index[i,1],3 \ index[i,2],3|] = wi[.,3] :/ ws
+				///
+				i--
+			}
+		}
+		else if (spec:==1) {
+			idt = mat[,(1,2)]
+			mat_nsp = SparseUndefine(mat,idt,1)
+			maxev = MaxEV(mat_nsp)
+			mat[.,3] = mat[.,3] :/ maxev
+		}
+		else if (spec:==2) {
+			mat[.,3] = mat[.,3] :/ MinMaxRC(mat[.,3])
 		}
 
 		return(mat)
@@ -1067,6 +1257,8 @@ mata: function myrowsum(x) return(rowsum(x))
 capture mata mata drop mycolsum()
 mata: function mycolsum(x) return(colsum(x))
 
+capture mata mata drop myquadsum()
+mata: function myquadsum(x) return(quadsum(x))
 
 cap program drop _dotspct
 program _dotspct

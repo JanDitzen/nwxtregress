@@ -5,7 +5,7 @@ __Table of Contents__
 1. [Syntax](#1-syntax)
 2. [Description](#2-description)
 3. [Options](#3-options)
-4. [Direct and Indirect Effects](#4-direct-and-indirect-effects)
+4. [Postestimation (Predict, Direct, indirect and total effects)](#4-postestimation)
 5. [Saved Values](#5-saved-values)
 6. [Examples](#6-examples)
 7. [References](#7-references)
@@ -45,12 +45,13 @@ option | Description
 **sparse** | if weight matrix is sparse.
 **timesparse** | weight matrix is sparse and varying over time.
 **id(string)** | vector of IDs if W is a non sparse mata matrix
-
+**normalize(string)** | which normalization to use.
 #### General Options
 
 options | Description
 --- | ---
 **nosparse** | not convert weight matrix internally to a sparse matrix
+**asarray(name)** | change name of array estimation results and info
 
 mcmcoptions | Description
 --- | ---
@@ -91,17 +92,80 @@ Y = rho W1 Y + beta X + gamma W2 X + eps
 
 where **W1** and **W2** are spatial weight matrices, Y the dependent and X the independent variables.
 
+```nwxtregress``` can handle spatial weights in three formats: 1. square matrix, 2. sparse and 3. time sparse.
+Sparse matrices have the advantage that they save space and thus computational time
+and allow for time varying weights.
+The [Sp environment](http://www.stata.com/manuals/sp.pdf) only supports the square matrix format. 
+```nwxtregress``` can read **square**, **sparse** and **time sparse** formats if the 
+data for the weights is in ``mata`` or saved in a ``frame``.{p_end}
+
+#### 1. Square matrix format
+
+The spatial weights are a matrix with dimension N_g x N_g. It is time constant. An Example with a 5 x 5 matrix is:
+
+        0    0.1  0.2  0
+        0    0    0.1  0.2
+        0.3  0.1  0    0
+        0.2  0    0.2  0
+
+#### 2. Sparse matrix format
+
+The sparse matrix format is a **v x 3** matrix, where **v** is the number of non-zero elements in the spatial weight matrix. The weight matrix is time constant. The first column indicates the destination, the second the origin of the flow.
+A sparse matrix of the matrix from above is:
+
+           Destination  Origin    Flow
+           1            2         0.1
+           1            3         0.2
+           2            3         0.1
+           2            4         0.2
+           3            1         0.3
+           3            2         0.1
+           4            1         0.2
+           4            3         0.2
+
+#### 3. Time-Sparse format
+
+The time sparse format can handle time varying spatial weights. The first column indicates the time period, the remaining are the same as for the sparse matrix. 
+For example, if there are two time periods and we have the matrix from 
+above for the first and the square for the second period:
+
+
+           Time    Destination    Origin    Flow
+           1       1              2         0.1
+           1       1              3         0.2
+           1       2              3         0.1
+           1       2              4         0.2
+           1       3              1         0.3
+           1       3              2         0.1
+           1       4              1         0.2
+           1       4              3         0.2
+              (next time period)
+           2       1              2         0.1
+           2       1              3         0.4
+           2       2              3         0.1
+           2       2              4         0.4
+           2       3              1         0.9
+           2       3              2         0.1
+           2       4              1         0.4
+           2       4              3         0.4
+
+Internally, nextregress will always use the time sparse format. This ensures that unbalanced panels do not pose a problem.  nextregress comes with functions for creating sparse matrices, coplying a sparse matrix into a squared format, and functions for mathematical operations (transpose and multiplication).
+
+
 # 3. Options
 
 #### Options
 
 Option | Description
  --- | --- 
-**mata** | declares weight matrix is ```mata``` matrix. Default is to use a spatial weight matrix from the **Sp** environment.
+**frame(name)** | declares weight matrix is saved in a ```frame```. Default is to use a spatial weight matrix from the **Sp** environment. If a frame is used, data can be in sparse, timesparse or square matrix format.
+**mata** | declares weight matrix is ```mata``` matrix. Default is to use a spatial weight matrix from the **Sp** environment. If a mata matrix is used, data can be in sparse, time sparse or square matrix format.
 **sparse** | if weight matrix is in sparse format. Sparse format implies that the first two column define the origin and the destination of the flow, the third column the value of the flow.
 **timesparse** | weight matrix is sparse and varying over time. As **sparse** but first column includes the time period.
-**id(string)** | vector of IDs if W is a non sparse mata matrix.
+**id(string)** | vector of IDs if W is a non sparse mata matrix. If a frame is used, then **id()** contains the varible names of the time indicator (if applicable), the origin and destination of the flows.
+**normalize(string)** |  which normalization to use for spatial weight matrix.  Default is row normalisation.  Can be none, row (default), column, spectral or minmax, see normalisation option of [spmat creat](http://www.stata.com/manuals/spspmatrixcreate.pdf). The normalisation is done for each time period individually.
 **nosparse** | not convert weight matrix internally to a sparse matrix.
+**asarray(name)** | nwxtregress saves intermediate results such as the spatial weight matrix in an internal time sparse format, residuals and results from the MCMC in an array, see stored values.  It is not recommended to change contents of the array and the option to change the name should only be rarely used. The default name is NWXTREG_OBJECT#, where # is a counter if the array already existed.
 **draws()** | number of griddy gibs draws, default 2000.
 **gridlength()** | grid length, default 1000.
 **nomit()** | number of omitted draws, default 500.
@@ -111,11 +175,53 @@ Option | Description
 **version** | display version.
 **update** | update from Github.
 
- # 4. Direct and Indirect Effects
+# 4. Postestimation
 
-Direct and indirect effects can be calculated using ```estat impact```.
+## 4.1 Direct, indirect and total effects.
 
- # 5. Saved Values
+Direct, indirect and total effects. can be calculated using ```estat impact```. The syntax is
+
+```
+ estat impact [varlist] [, options]
+```
+
+Option | Description
+ --- | --- 
+seed(#) | set seed for Barry Pace matrix inversion.
+array(name) | name of array with saved contents from nwxtregress, see stored results.
+
+``varlist`` defines the variables for which the direct, indirect and total effects are displayed.  If not specified, then estat impact will calculate the effects for all explanatory variables (indepvars).
+
+``estat impact`` saves the following in r():
+
+
+
+Matrix | Description
+ --- | --- 
+**r(b_direct)** | Coefficient Matrix of direct effects
+**r(V_direct)** | Variance covariance matrix of direct effects
+**r(b_indirect)** | Coefficient Matrix of indirect effects
+**r(V_indirect)** |  Variance covariance matrix of indirect effects 
+**r(b_total)** | Coefficient Matrix of total effects
+**r(V_total)** | Variance covariance matrix of total effects
+
+## 4.2 Predict
+
+``predict`` can be used after nwxtregress. The syntax for predict is:
+
+```
+predict [type] varname [, options]
+```
+
+Option | Description
+ --- | --- 
+xb | calculate linear prediction.
+res | calculate residuals.
+replace | replace if varname exists.
+array(name) | name of array with saved contents from nwxtregress, see stored results.
+
+
+# 5. Saved Values
 
 ***nwxtregress*** saves the following in ***e()***
 
@@ -147,6 +253,12 @@ MCdraws | Number of MCMC draws
 Macro | Description
 ---|---
 sample | sample
+
+
+#### mata arrays
+
+ In addition to e() and r() nwxtregress saves informations about the estimation in a mata array.  The contents are the weight matrix in time sparse format, residuals and results from the MCMC.  Storing those saves time for ``estat impact`` and ``predict``.  The name default name of the array is _NWXTREG_OBJECT#, but can be set with the option **asarray()**.  In general it is not recommended to change this setting.
+
 
 # 6. Examples
 

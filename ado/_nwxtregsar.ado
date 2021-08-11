@@ -13,8 +13,12 @@ program define _nwxtregsar, eclass
 		NOMIT(integer 500)				/// number of omitted draws
 		BArrypace(numlist)				/// settings for BarryPace Trick, iterations, maxorder default: 50 100
 		usebp							/// use LUD instead of Barry-Pace
+		/// FE, constant etc.
+		fe 								/// add fixed effects
+		STANDardize						/// standardize data
+		NOCONStant						/// suppress constant
 		/// output
-		direct 							/// show total, indirect and direct effects
+		asarray(string)					/// name of array
 		]
 
 		if "`usebp'" == "" {
@@ -24,6 +28,7 @@ program define _nwxtregsar, eclass
 			local uselud ""
 		}
 
+		GetArrayName `asarray'
 
 		if "`trace'" == "" {
 			local trace "qui"
@@ -57,53 +62,6 @@ program define _nwxtregsar, eclass
 			*** adjust touse
 			markout `touse' `indepdepvars' `spatial'
 
-			*** load weight matrix
-			*** sparse indicates that spatial weight matrix is already sparse
-			*** time sparse indicates that spatial weitght matrix is sparse and different in time
-			*** if sparse matrix is used definition is: |t|,i, j,, value
-			*** id is a mata matrix indicating the id
-			/*
-			local 0 `dvarlag'
-			syntax anything(name=wname) , [mata id(string) sparse timesparse]
-
-			tempname w_id 
-
-			if "`sparse'" != "" & "`timesparse'" != "" {
-				*** time sparse implies sparse
-				local sparse ""
-			}
-
-			if "`mata'" == "" {
-				spmatrix matafromsp `wname' `w_id' = `wname'
-			}
-
-			if "`id'" == "" {
-				if "`sparse'`timesparse'" == "" {
-					/// here correct!
-					mata `w_id' = (1::rows(`wname'))
-				}
-				else if "`sparse'" != "" & "`timesparse'" == "" {
-					mata `w_id' = uniqrows(`wname'[.,1])
-				}
-				else if "`sparse'" == "" & "`timesparse'" != "" {
-					mata `w_id' = uniqrows(`wname'[.,2])
-				} 
-			}
-			else {	
-				mata `w_id' = `id'
-			}
-
-			*** 1 if W is sparse
-			if "`sparse'`timesparse'" == "" {
-				local sparse = 0
-			}
-			else if "`sparse'" != "" {
-				local sparse = 1
-			}
-			else if "`timesparse'" != ""  {
-				local sparse = 2
-			}
-			*/
 			*** process spatial weigth matrices
 			tempname nwxtreg_Warray 
 			mata `nwxtreg_Warray' = asarray_create()
@@ -138,32 +96,32 @@ program define _nwxtregsar, eclass
 			}
 
 			*** clear ereturn
-
+			tempname DataTrans
+			mata `DataTrans' = ("`fe'"!=""),("`noconstant'"!=""),("`standardize'"!="")
 timer on 1
-			mata nwxtreg_output = estimatesar("`indepdepvars'","`touse'","`idvar' `tvar'",`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'))
+			mata `asarray' = estimatesar("`indepdepvars'","`touse'","`idvar' `tvar'",`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'),`DataTrans' )
 timer off 1
-			
-			
-			
-
-			*mata mata drop `output'
-
 
 		}		
 		
-		output_table_main nwxtreg_output, varnames("`indepdepvars'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial SAR") warray("`nwxtreg_Warray'")
+		output_table_main `asarray', varnames("`indepdepvars'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial SAR") warray("`nwxtreg_Warray'")
 
 		ereturn local estat_cmd "nwxtregress_estat"
+		ereturn local predict "nwxtregress_predict"
 
-		ereturn hidden local output_mat "nwxtreg_output"
+		ereturn hidden local output_mat "`asarray'"
 		ereturn hidden scalar nomit = `nomit'
-		*ereturn hidden scalar issparse = `sparse'
+		
+		tempname sparse
+		mata st_numscalar("`sparse'",asarray(asarray(`nwxtreg_Warray',"Wy"),"sparse"))
+		ereturn hidden scalar issparse = `sparse'
+
 		ereturn local cmd "nwxtregress"
 		ereturn hidden local type "sar"
-		
+
+
 		mata mata drop `nwxtreg_Warray'
 
-		*ereturn local indepvar 
 end
 
 // -------------------------------------------------------------------------------------------------
@@ -182,20 +140,21 @@ mata:
 							real scalar gridlength,			///
 							real scalar ndraws,				///
 							real scalar nomit,				///
-							real matrix BarryPace 			///
+							real matrix BarryPace, 			///
+							/// Other options				
+							real matrix DataTrans			///
 							)
 
 	{
 timer_on(10)
-Varnames
+
 		/// load data
 		LoadData(Varnames,idtname,tousename,Y=.,X=.,idt=.,N=.,T=.,K=.,PanelSetup=.,Unbalanced=.,uniqueid=.,uniquet=.)
 		
 		NT = rows(X)
 
-		_studentizeT(Y,T,idt,uniquet)
-		_studentizeT(X,T,idt,uniquet)
-
+		_DataTransform(Y,X,idt,uniquet,DataTrans,T,Varnames,K)
+		
 		Wii = asarray(nwxtreg_Warray,"Wy")
 		W_id = asarray(Wii,"W_id")
 		W_sparse = asarray(Wii,"sparse")
@@ -213,7 +172,8 @@ Varnames
 		/// order spatial weight matrix ( only row normalise now!)
 		/// here matrix is restricted to correct time periods
 		"start order"
-		W = OrderW(W,W_id,idt,Unbalanced,N,T,uniqueid,1,W_sparse)
+		asarray(Wii,"norm")
+		W = OrderW(W,W_id,idt,Unbalanced,N,T,uniqueid,asarray(Wii,"norm"),W_sparse)
 		asarray_keys(W)
 		///asarray(W,1)[1..100,.]
 		if (W_sparse == 2) {
@@ -291,6 +251,11 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		/// Statistics
 		residuals = e0 - phat * ed
 "res"
+		
+		///if (DataTrans[2]:==0) {
+		///	K = K + 1
+		///}
+
 		sigma = quadcross(residuals,residuals) / (N-K)
 		R2 = R2_calc(residuals,Y,N,K)
 "dinbe"
@@ -304,17 +269,17 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		pupper = mm_quantile(pdraws,1,st_numscalar("c(level)"))
 		plower = mm_quantile(pdraws,1,1-st_numscalar("c(level)"))
 
-		/// Direct and Indirect Effects
-		
+		/// constant
+		///if (DataTrans[2]:==0) bhat = _EstConst(Y,(Wy,X),(phat,bhat),cols(Wy),sigma,Wx_order,Varnames,varcov,tstat)		
 		
 "DI done"
 		/// Output
-		output = asarray_create()
+		output = asarray_create()		
 		asarray(output,"bhat",bhat)
 		asarray(output,"phat",phat)
 		asarray(output,"shat",shat)
 
-		asarray(output,"sds",sds)
+		///asarray(output,"sds",sds)
 
 		asarray(output,"blower",blower)
 		asarray(output,"bupper",bupper)
@@ -334,20 +299,20 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		asarray(output,"pdraws",pdraws)
 		asarray(output,"sdraws",sdraws)
 		asarray(output,"bdraws",bdraws)
-		if (BarryPace==0) {
-			trace = 0			
+		///if (sum(BarryPace):==0) {
+		///	trace = 0			
 			asarray(output,"idt",idt)
-		}
-		else {
-			trace = 1
-		}
+		///}
+
 		asarray(output,"trace",trace)
 		asarray(output,"W",W)
 		asarray(output,"sdm",0)
+		asarray(output,"DataTrans",DataTrans)
 
 		/// to remove
 		asarray(output,"initgrid",detinit)
 		asarray(output,"detval",detval)
+
 		/// Stats
 		Tminmax = PanelSetup[.,2] - PanelSetup[.,1] :+ 1
 		Tminmax = min(Tminmax),max(Tminmax),mean(Tminmax)
@@ -356,11 +321,16 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		asarray(output,"dimensions",(rows(Y),N,K,K,T,Tminmax))
 		asarray(output,"MCMC",(ndraws,nomit))
 
+		asarray(output,"residuals",(residuals,idt))
+
 		/// for testing
-		asarray(output,"Y",(Y,idt))
-		asarray(output,"X",(X,idt))
-		asarray(output,"Wy",(Wy,idt))
-		asarray(output,"gridr",gridr)
+		///asarray(output,"Y",(Y,idt))
+		///asarray(output,"X",(X,idt))
+		///asarray(output,"Wy",(Wy,idt))
+		///asarray(output,"gridr",gridr)
+
+
+
 		return(output)
 		
 

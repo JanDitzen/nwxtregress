@@ -3,16 +3,16 @@ program define nwxtregress_estat, rclass
 
 	gettoken subcmd rest: 0 
 	if regexm("`subcmd'","impact*")==1 {
-		`subcmd' `rest'
+		impact `rest'
 	}
 	else {
 		noi disp "no cmd"
 	}
-
+	return add
 end
 
-program define impact
-	syntax [anything] , [trace seed(string)]
+program define impact, rclass
+	syntax [anything] , [trace seed(string) array(string)]
 
 		if "`anything'" == "" {
 			local varlist "`e(indepvar)'"
@@ -28,15 +28,22 @@ program define impact
 			local trace "qui"
 		}
 
-		
+		if "`array'" == "" local array `e(output_mat)'	
 
-		local output_mat = e(output_mat)
+		cap mata asarray(`array',"W")
+
+		if _rc != 0 {
+			noi disp in smcl as error "mata array `array' with saved contents from {cmd:nwxtregress} not found."
+			exit
+		}
 
 		if "`seed'" != "" {
 			set seed `seed'
 		}
 		
-		`trace' mata calc_DIEffects(`output_mat')
+		
+
+		`trace' mata calc_DIEffects(`array')
 		
 
 		/// Output
@@ -71,15 +78,48 @@ program define impact
 		di as text _col(`col') "[`level'% Conf. Interval]"    
 		di as text "{hline `col_i'}{c +}{hline `=`maxline'-`col_i''}"
 
-		mata output_matrix((asarray(`output_mat',"direct")[.,1]),(asarray(`output_mat',"direct")[.,2]),(asarray(`output_mat',"direct")[.,3]),(asarray(`output_mat',"direct")[.,4]),"`e(indepvar)'","direct",`col_i',0,"`varlist'",1::rows((asarray(`output_mat',"direct"))))
+		mata output_matrix((asarray(`array',"direct")[.,1]),(asarray(`array',"direct")[.,2]),(asarray(`array',"direct")[.,3]),(asarray(`array',"direct")[.,4]),"`e(indepvar)'","direct",`col_i',0,"`varlist'",1::rows((asarray(`array',"direct"))))
 		di as text "{hline `col_i'}{c +}{hline `=`maxline'-`col_i''}"
 
-		mata output_matrix((asarray(`output_mat',"indirect")[.,1]),(asarray(`output_mat',"indirect")[.,2]),(asarray(`output_mat',"indirect")[.,3]),(asarray(`output_mat',"indirect")[.,4]),"`e(indepvar)'","indirect",`col_i',0,"`varlist'",1::rows((asarray(`output_mat',"indirect"))))
+		mata output_matrix((asarray(`array',"indirect")[.,1]),(asarray(`array',"indirect")[.,2]),(asarray(`array',"indirect")[.,3]),(asarray(`array',"indirect")[.,4]),"`e(indepvar)'","indirect",`col_i',0,"`varlist'",1::rows((asarray(`array',"indirect"))))
 		di as text "{hline `col_i'}{c +}{hline `=`maxline'-`col_i''}"
 
-		mata output_matrix((asarray(`output_mat',"total")[.,1]),(asarray(`output_mat',"total")[.,2]),(asarray(`output_mat',"total")[.,3]),(asarray(`output_mat',"total")[.,4]),"`e(indepvar)'","total",`col_i',0,"`varlist'",1::rows((asarray(`output_mat',"total"))))
+		mata output_matrix((asarray(`array',"total")[.,1]),(asarray(`array',"total")[.,2]),(asarray(`array',"total")[.,3]),(asarray(`array',"total")[.,4]),"`e(indepvar)'","total",`col_i',0,"`varlist'",1::rows((asarray(`array',"total"))))
 		di as text "{hline `col_i'}{c BT}{hline `=`maxline'-`col_i''}"
 
+		tempname b_direct b_indirect b_total V_direct V_indirect V_total mVnames
+
+		mata `mVnames' = tokens("`varlist'")'
+		mata `mVnames' = J(rows(`mVnames' ),1,""),`mVnames'
+
+		mata post_matrix(asarray(`array',"direct")[.,1]',"`b_direct'",`mVnames',0)
+		mata post_matrix(asarray(`array',"indirect")[.,1]',"`b_indirect'",`mVnames',0)
+		mata post_matrix(asarray(`array',"total")[.,1]',"`b_total'",`mVnames',0)
+
+		mata post_matrix(asarray(`array',"directVcov"),"`V_direct'",`mVnames',1)
+		mata post_matrix(asarray(`array',"indirectVcov"),"`V_indirect'",`mVnames',1)
+		mata post_matrix(asarray(`array',"totalVcov"),"`V_total'",`mVnames',1)
+
+		mata asarray_remove(`array',"direct")
+		mata asarray_remove(`array',"indirect")
+		mata asarray_remove(`array',"total")
+
+		mata asarray_remove(`array',"directVcov")
+		mata asarray_remove(`array',"indirectVcov")
+		mata asarray_remove(`array',"totalVcov")
+
+		return clear
+		
+
+		return matrix b_direct = `b_direct'
+		return matrix b_indirect = `b_indirect'
+		return matrix b_total = `b_total'
+
+		return matrix V_direct = `V_direct'
+		return matrix V_indirect = `V_indirect'
+		return matrix V_total = `V_total'
+
+		*return add
 end
 
 

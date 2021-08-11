@@ -135,23 +135,7 @@ mata:
 					///if (sum(posX) > 0) {				
 						posX = posX[selectindex(posX:!=.)]
 						result[posi,.] = Wi[.,3]' * X[posX,.]
-					///}
-					///else {
-					///	"no return!"
-					///}
-					/// start 
-
-					/// end
-					/// vectorise
-					/// create big matrix with values 
-					
-					///timer_on(29)
-
-					///res_matS = J(max_xW,1,.)
-					
-					///res_matS[Wi[.,2],1] = Wi[.,3]
-					///result[posi,.] = quadcrores_matS'*res_matX
-					///timer_off(29)
+				
 					
 
 
@@ -287,8 +271,6 @@ mata:
 			}
 		}
 		timer_off(25)
-		"res"
-		sum(result)
 		return(result)
 		
 	}
@@ -303,8 +285,8 @@ mata:
 	{
 		if (issparse == 1) {
 			
-			uniid = panelsetup(idt[.,1],1)
-			N = rows(uniid)
+			uniid1 = panelsetup(idt[.,1],1)
+			N = rows(uniid1)
 		
 			result = J(N,N,0)
 
@@ -313,6 +295,7 @@ mata:
 
 			i = rows(indexBig)
 			while (i>0) {
+
 				col_i = panelsubmatrix(sparseSorted,i,indexBig)
 
 				if (rows(col_i) > 0) {

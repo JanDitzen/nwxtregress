@@ -18,16 +18,24 @@ mata:
 		/// K is without spatial lags
 		K = asarray(arrayname,"dimensions")[3]
 
+		/// remove constant
+		if (st_numscalar("e(HasCons)"):==1) {
+			K = K -1
+			bdraws = bdraws[.,1..cols(bdraws)-1]
+			varnames = varnames[selectindex(varnames:!="_cons")]
+			betanames = betanames[selectindex(betanames[.,2]:!="_cons"),.]
+		}
+
 		ndraws = asarray(arrayname,"MCMC")[1]
 		///nomit = asarray(arrayname,"MCMC")[2]
 		nomit = 0
 
 		issparse = st_numscalar("e(issparse)")
-		if (trace==0) {
 
+		if (trace[1,1]:==.) {
 			W = asarray(arrayname,"W")
 			idt = asarray(arrayname,"idt")
-			trace =  BarryPace(W,idt,T,N,50,100,issparse,sdm)
+			trace =  BarryPace(W,idt,T,N,50,100,issparse,sdm,1)
 		}
 
 		trs = (1\ trace:/T)
@@ -89,51 +97,49 @@ mata:
 
 		}
 
-		totalo = calc_Effect(totalm,ndraws,nomit,K,ntrs)
-		directo = calc_Effect(direct,ndraws,nomit,K,ntrs)
-		indirecto = calc_Effect(indirect,ndraws,nomit,K,ntrs)
+		totalo = calc_Effect(totalm,ndraws,nomit,K,ntrs,totalVcov=.)
+		directo = calc_Effect(direct,ndraws,nomit,K,ntrs,directVcov=.)
+		indirecto = calc_Effect(indirect,ndraws,nomit,K,ntrs,indirectVcov=.)
 		
 		/// write to array
 		asarray(arrayname,"total",totalo)
 		asarray(arrayname,"indirect",indirecto)
 		asarray(arrayname,"direct",directo)
 
+		asarray(arrayname,"totalVcov",totalVcov)
+		asarray(arrayname,"indirectVcov",directVcov)
+		asarray(arrayname,"directVcov",indirectVcov)
 
 	}
 end
 
 capture mata mata drop  calc_Effect()
 mata:
-	function calc_Effect(transmorphic matrix mat, real scalar ndraws, real scalar nomit, real scalar K, real scalar ntrs)
+	function calc_Effect(transmorphic matrix mat, real scalar ndraws, real scalar nomit, real scalar K, real scalar ntrs,real matrix vcov)
 	{
 		outmat = J(K,4,0)
-		save = J(ndraws-nomit,K,0)
+	
+		vcov = J(ndraws-nomit,K,.)
+
 		i=1
 		while (i<=K) {
-
 			tmp = asarray(mat,i)
-			rows(tmp),cols(tmp)
-			///total_mean = mean(tmp)
-			"colsum"
-			///total_std = sqrt(diagonal(quadvariance(tmp)))
-			total_sum = (quadcolsum(tmp'))'
-			rows(total_sum),cols(total_sum)
-			///cum_mean = mm_colrunsum(total_mean)
-			///cum_std = mm_colrunsum(total_std)
 
-			///save[.,i] = total_sum
+			total_sum = (quadcolsum(tmp'))'
+
 
 			cmean = mean(total_sum)
-
-			smean = quadvariance(total_sum)
-			
-
+			smean = quadvariance(total_sum)		
+				
+			vcov[.,i] = total_sum
 			upper = mm_quantile(total_sum,1,st_numscalar("c(level)"))
 			lower = mm_quantile(total_sum,1,1-st_numscalar("c(level)")) 
 
 			outmat[i,.] = (cmean, smean,lower, upper)
 			i++
 		}
+
+		vcov = quadvariance(vcov)
 
 		return(outmat)
 	}
@@ -145,21 +151,24 @@ end
 // -------------------------------------------------------------------------------------------------
 capture mata mata drop BarryPace()
 mata:
-	function BarryPace(transmorphic matrix W, real matrix idt, real scalar T, real scalar N,real scalar uiter, real scalar maxorder,real scalar issparse,real scalar sdm)
+	function BarryPace(transmorphic matrix W, real matrix idt, real scalar T, real scalar N,real scalar uiter, real scalar maxorder,real scalar issparse,real scalar sdm,real scalar display)
 	{
-		"start BP"
+		
 		if (eltype(W) == "real") {
 			Wi = W
 		}
-			
-		if (args())
+		
+		if (display == 1) {
+			cmd = sprintf("noi _dotspct 0 , reps(%s)",strofreal(T*maxorder))
+			stata(cmd)	
+		}
 
 		tracew = J(maxorder,1,0)
 		traces = J(maxorder,1,0)
 		Tuniq = uniqrows(idt[.,2],1)
 		
 		t=1
-
+		vi = 1
 		while(t<=T) {			
 			if (eltype(W) != "real") {
 				Wi = asarray(W,Tuniq[t,1])
@@ -174,9 +183,16 @@ mata:
 	
 			while (j<=maxorder) {				
 	
-				wjjju = SparseMultiply(Wi,wjjju,issparse,indext) 
-		
+				wjjju = SparseMultiply(Wi,wjjju,issparse,indext) 		
 				tracew[j] = mean(mean(rv:*wjjju)')
+
+				if (display == 1) {
+					cmd = sprintf("noi _dotspct %s 0 , reps(%s)",strofreal(vi),strofreal(T*maxorder))
+					stata(cmd)
+					vi++
+				}
+
+
 				j++
 			}
 
@@ -190,9 +206,9 @@ mata:
 			traces = traces + tracew
 
 			traces[1] = 0
+
 			t++
 		}
-
 
 		"BP done"
 		return(traces)

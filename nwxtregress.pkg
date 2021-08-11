@@ -4,11 +4,12 @@ d Jan Ditzen, Free University of Bozen-Bolzano, jan.ditzen@unibz.it, jan.ditzen.
 d William Grieser, Texas Christian University, w.grieser@tcu.edu, https://www.williamgrieser.com/
 d Morad Zekhnini, Michigan State University, zekhnini@msu.edu, https://sites.google.com/view/moradzekhnini/home
 
-d Distribution date: 20210803
+d Distribution date: 20210811
 
 f ado\nwxtreg.ado  
 f ado\nwxtregress.ado
-f ado\nwxtregress_estat.ado      
+f ado\nwxtregress_estat.ado  
+f ado\nwxtregress_predict.ado      
 f ado\_nwxtregsdm.ado 
 f ado\_nwxtregsar.ado     
 f ado\_spatial_models_aux.ado     

@@ -24,14 +24,6 @@ program define output_table_main, eclass
 	local y = word("`varnames'",1)
 	local varnames : list varnames - y
 
-	if "`sdm'" != "" {
-		*mata st_local("varWx",asarray(`matname',"Wx_order")')	
-		*tempname varWx
-		*mata 
-		*mata `varWx' = J(cols(tokens("`varnames'"),1,"`y'")) , tokens("`varnames'")'
-		*mata `varWx' = `varWx' \ asarray(`matname',"Wx_order")
-	}
-
 	/// prepare data for output
 	tempname b bp varcov pvarcov
 
@@ -70,6 +62,8 @@ program define output_table_main, eclass
 	mata st_numscalar("e(r2_a)",(asarray(`matname',"r2")[2]))
 	mata st_numscalar("e(MCdraws)",(asarray(`matname',"MCMC")[1]))
 
+	mata st_numscalar("e(HasCons)",(asarray(`matname',"DataTrans")[2]:==0),"hidden")
+
 	ereturn local idvar "`idvar'"
 	ereturn local tvar "`tvar'"
 	ereturn local indepvar "`varnames'"
@@ -86,8 +80,7 @@ program define output_table_main, eclass
 	local maxline = `abname' + 66
 	di ""
 
-	di in gr "`cmdname'" ///
-		_col(`=`maxline'-80+50') in gr "Number of obs" _col(`=`maxline'-80+68') "=" ///
+	di in gr _col(`=`maxline'-80+50') in gr "Number of obs" _col(`=`maxline'-80+68') "=" ///
 		_col(`=`maxline'-80+71') in ye %9.0f e(N)
 
 	di in gr "Panel Variable (i): " in ye abbrev(e(idvar),`abname') in gr ///
@@ -162,7 +155,7 @@ program define output_table_main, eclass
 	}
 	
 	/// display sigma
-	mata output_matrix(asarray(`matname',"shat"),asarray(`matname',"svarcov"),asarray(`matname',"slower"),asarray(`matname',"supper"),"\sigma_u","",`col_i',1,"",1)
+	mata output_matrix(asarray(`matname',"shat"),asarray(`matname',"svarcov"),asarray(`matname',"slower"),asarray(`matname',"supper"),"/sigma_u","",`col_i',1,"",1)
 	di as text "{hline `col_i'}{c BT}{hline `=`maxline'-`col_i''}"
 
 end

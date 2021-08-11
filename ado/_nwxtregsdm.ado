@@ -14,8 +14,12 @@ program define _nwxtregsdm, eclass
 		NOMIT(integer 500)				/// number of omitted draws
 		BArrypace(numlist)				/// settings for BarryPace Trick, iterations, maxorder default: 50 100
 		usebp							/// use BP instead of LUD
+		/// FE, constant etc.
+		fe 								/// add fixed effects
+		STANDardize						/// standardize data
+		NOCONStant						/// suppress constant
 		/// output
-		direct 							/// show total, indirect and direct effects
+		asarray(string)					/// name of array
 		* 								/// ivlag weights
 		]
 
@@ -26,6 +30,7 @@ program define _nwxtregsdm, eclass
 			local uselud ""
 		}
 
+		GetArrayName `asarray'
 
 		if "`trace'" == "" {
 			local trace "qui"
@@ -67,12 +72,14 @@ program define _nwxtregsdm, eclass
 			gettoken 1 2: dvarlag , parse(",") 
 			spmat_set `1' , `=subinstr("`2'",",","",.)' varlist(`spatial') arrayname("`nwxtreg_Warray'") isdep
 
+			
 			*** Indepvar
 			local rest "`options'"
 			while  "`rest'" != "" {
-				*noi disp "`rest'"
+				tempname wname
+
 				gettoken cur rest: rest, bind
-				
+
 				local 0 ", `cur'"
 				syntax [anything], ivarlag(string) 
 
@@ -80,7 +87,7 @@ program define _nwxtregsdm, eclass
 				local 2 = subinstr("`2'",",","",.)
 				gettoken tmp1 tmp2 : 1, parse(":")
 				local tmp2 = subinstr("`tmp2'",":","",.)
-				spmat_set `tmp1' , `2' varlist(`tmp2') arrayname("`nwxtreg_Warray'") 
+				spmat_set `tmp1' , `2' varlist(`tmp2') arrayname("`nwxtreg_Warray'") wname(`wname')
 			}
 
 			*** Use sparse matrices internally
@@ -109,25 +116,30 @@ program define _nwxtregsdm, eclass
 			}
 
 			*** clear ereturn
-
+			tempname DataTrans
+			mata `DataTrans' = ("`fe'"!=""),("`noconstant'"!=""),("`standardize'"!="")
 timer on 1
-			mata nwxtreg_output = estimatesdm("`indepdepvars'","`touse'","`idvar' `tvar'",`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'))
+			mata `asarray' = estimatesdm("`indepdepvars'","`touse'","`idvar' `tvar'",`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'),`DataTrans')
 timer off 1
 			
 		}		
 		
-		output_table_main nwxtreg_output, varnames("`indepdepvars'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial SDM") warray("`nwxtreg_Warray'") sdm
+		output_table_main `asarray', varnames("`indepdepvars'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial SDM") warray("`nwxtreg_Warray'") sdm
 
 		ereturn local estat_cmd "nwxtregress_estat"
+		ereturn local predict "nwxtregress_predict"
 
-		ereturn hidden local output_mat "nwxtreg_output"
+		ereturn hidden local output_mat "`asarray'"
 		ereturn hidden scalar nomit = `nomit'
 		tempname sparse
 		mata st_numscalar("`sparse'",asarray(asarray(`nwxtreg_Warray',"Wy"),"sparse"))
 		ereturn hidden scalar issparse = `sparse'
-		ereturn local cmd "nwxtregress"
 		
-		*ereturn local indepvar 
+		ereturn local cmd "nwxtregress"
+		ereturn hidden local type "sdm"
+
+		mata mata drop `nwxtreg_Warray'
+
 end
 
 // -------------------------------------------------------------------------------------------------
@@ -146,7 +158,8 @@ mata:
 							real scalar gridlength,			///
 							real scalar ndraws,				///
 							real scalar nomit,				///
-							real matrix BarryPace 			///
+							real matrix BarryPace, 			///
+							real matrix DataTrans 			///
 							)
 
 	{
@@ -156,10 +169,9 @@ timer_on(10)
 		LoadData(Varnames,idtname,tousename,Y=.,X=.,idt=.,N=.,T=.,K=.,PanelSetup=.,Unbalanced=.,uniqueid=.,uniquet=.)
 		
 		NT = rows(X)
-K
-		_studentizeT(Y,T,idt,uniquet)
-		_studentizeT(X,T,idt,uniquet)
-"here"
+		
+		_DataTransform(Y,X,idt,uniquet,DataTrans,T,Varnames,K)
+
 		///X = X1
 		Wx_order = (J(cols(tokens(Varnames))-1,1,tokens(Varnames)[1]) , (tokens(Varnames)[2..cols(tokens(Varnames))])')
 
@@ -187,7 +199,7 @@ K
 				sum(Wi)
 				W_sparse = asarray(Wii,"sparse")
 
-				W = OrderW(Wi,W_id,idt,Unbalanced,N,T,uniqueid,1,W_sparse)
+				W = OrderW(Wi,W_id,idt,Unbalanced,N,T,uniqueid,asarray(Wii,"norm"),W_sparse)
 				"sum is"
 				sum(asarray(W,asarray_keys(W)[1]))
 				Wy = spatialLag(Y,W,idt,T,W_id,uniqueid,uniquet,W_sparse)
@@ -197,7 +209,7 @@ K
 			else {
 				"Indep var"
 				sum(Wi)
-				Wi = OrderW(Wi,W_id,idt,Unbalanced,N,T,uniqueid,1,asarray(Wii,"sparse"))
+				Wi = OrderW(Wi,W_id,idt,Unbalanced,N,T,uniqueid,asarray(Wii,"norm"),asarray(Wii,"sparse"))
 				"sum is"
 				asarray_keys(Wi)
 				sum(asarray(Wi,asarray_keys(Wi)[1]))
@@ -221,13 +233,6 @@ K
 		if (W_sparse == 2) {
 			W_sparse = 1
 		}
-"now next"
-timer_off(10)
-timer_on(11)
-
-
-
-		
 		/// update K
 		Ksp = cols(X)
 
@@ -235,19 +240,13 @@ timer_on(11)
 		XY = quadcross(X,Y)
 		XWy = quadcross(X,Wy)
 		
-		/// inital estimations (needed?)
+		/// inital estimations 
 		olsp(Y,X,b0=.,e0=.,XY,XX)
-
 		olsp(Wy,X,b0=.,ed=.,XWy,XX)
-timer_off(11)
-timer_on(12)
-timer_on(13)
+
 		/// inital grid
 		initgrid(idt,W,detval=.,gridlength/10,uniquet,N,T,W_sparse,BarryPace,trace=.,1)
-timer_off(13)
-"grid done"
-"detval grid"
-"trace"
+
 
 		///fgrid = (-(1-1/gridlength)*gridlength..(1-1/gridlength)*gridlength):/gridlength
 		fgrid = range(-0.99,0.99,1/gridlength)
@@ -282,24 +281,29 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		smean = quadmeanvariance(sdraws)
 		svarcov = smean[2..rows(smean),.]
 		shat = smean[1,.] 
-"here"
+
 		pmean = quadmeanvariance(pdraws)		
 		pvarcov = pmean[2..rows(pmean),.]
 		phat = pmean[1,.] 
-"here2"	
+
 		bhat = quadmeanvariance(bdraws)
 		varcov = bhat[2..Ksp+1,.]
 		bhat = bhat[1,.]
 		sds = sqrt(diagonal(varcov))
 		tstat = bhat :/ sds'
-"her"
 
 		/// Statistics
 		residuals = e0 - phat * ed
-"res"
+
+		///if (DataTrans[2]:==0) {
+		///	K = K + 1
+		///	Ksp = Ksp + 1
+		///}
+
+
 		sigma = quadcross(residuals,residuals) / (N-K)
 		R2 = R2_calc(residuals,Y,N,Ksp)
-"dinbe"
+
 		/// Upper and lower vales for CI Interval
 		bupper = mm_quantile(bdraws,1,st_numscalar("c(level)"))
 		blower = mm_quantile(bdraws,1,1-st_numscalar("c(level)"))
@@ -310,7 +314,8 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		pupper = mm_quantile(pdraws,1,st_numscalar("c(level)"))
 		plower = mm_quantile(pdraws,1,1-st_numscalar("c(level)"))
 
-		/// Direct and Indirect Effects
+		/// constant
+		///if (DataTrans[2]:==0) bhat = _EstConst(Y,(Wy,X),(phat,bhat),cols(Wy),sigma,Wx_order,Varnames,varcov,tstat)		
 		
 		
 "DI done"
@@ -340,20 +345,22 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		asarray(output,"pdraws",pdraws)
 		asarray(output,"sdraws",sdraws)
 		asarray(output,"bdraws",bdraws)
-		if (sum(BarryPace)==0) {
-			trace = 0			
+		///if (sum(BarryPace):==0) {
+		///	trace = 0			
 			asarray(output,"idt",idt)
-		}
-		else {
+		///}
+		///else {
 			///asarray(output,"trace",trace)
-		}
+		///}
 		asarray(output,"trace",trace)
 		asarray(output,"W",W)
 		asarray(output,"sdm",1)
+		asarray(output,"DataTrans",DataTrans)
 
 		/// to remove
 		asarray(output,"initgrid",detinit)
 		asarray(output,"detval",detval)
+
 		/// Stats
 		Tminmax = PanelSetup[.,2] - PanelSetup[.,1] :+ 1
 		Tminmax = min(Tminmax),max(Tminmax),mean(Tminmax)
@@ -362,11 +369,15 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		asarray(output,"dimensions",(rows(Y),N,K,Ksp,T,Tminmax))
 		asarray(output,"MCMC",(ndraws,nomit))
 
+		asarray(output,"residuals",(residuals,idt))
+
+		asarray(output,"Wstuff",nwxtreg_Warray)
+
 		/// for testing
-		asarray(output,"Y",(Y,idt))
-		asarray(output,"X",(X,idt))
-		asarray(output,"Wy",(Wy,idt))
-		asarray(output,"gridr",gridr)
+		///asarray(output,"Y",(Y,idt))
+		///asarray(output,"X",(X,idt))
+		///asarray(output,"Wy",(Wy,idt))
+		///asarray(output,"gridr",gridr)
 		return(output)
 		
 	}
