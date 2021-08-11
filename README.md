@@ -46,12 +46,15 @@ option | Description
 **timesparse** | weight matrix is sparse and varying over time.
 **id(string)** | vector of IDs if W is a non sparse mata matrix
 **normalize(string)** | which normalization to use.
+
 #### General Options
 
 options | Description
 --- | ---
 **nosparse** | not convert weight matrix internally to a sparse matrix
 **asarray(name)** | change name of array estimation results and info
+
+#### MCMC Options
 
 mcmcoptions | Description
 --- | ---
@@ -262,48 +265,83 @@ sample | sample
 
 # 6. Examples
 
-An example dataset with USE/MAKE table data from the BEA’s website and links between industries is available [GitHub](https://github.com/JanDitzen/nwxtregress/tree/main/examples). The dataset W.dta contains the linkages (spatial weights) and the dataset SAM.dta the firm data. We want to estimate capital consumption by using compensation and net surplus as explanatory variables.
+An example dataset with USE/MAKE table data from the BEA’s website and links between industries is available [GitHub](https://github.com/JanDitzen/nwxtregress/tree/main/examples). The dataset IO.dta contains the linkages (spatial weights) and the dataset VA.dta the firm data.  We want to estimate capital consumption by using compensation and net surplus as explanatory variables.
+
 
 First we load the data from the W dataset and convert into a **SP** object for the year 1998.
 
 ```
-use W
+use https://janditzen.github.io/nwxtregress/examples/IO.dta
 keep if Year == 1998
-spmatrix fromdata W = sam* ,replace
+replace sam = 0 if sam < 0
+replace sam = 0 if ID1==ID2
+reshape wide sam, i(ID1) j(ID2)
+spset ID1
+spmatrix fromdata WSpmat = sam* , replace
 ```
 
-Next, we load the dataset with the firm data and estimate a SAR with a time constant spatial weight matrix. We also obtain the total, direct and indirect effects using ```estat impact```. For reproducibility we set a seed.
+Next, we load the dataset with the firm data and estimate a SAR with a time constant spatial weight matrix.  We also obtain the total, direct and indirect effects using estat impact.  For reproducibility we set a seed.
 
 ```
-use SAM, clear
-nwxtregress cap_cons compensation net_surplus , dvarlag(W) seed(1234)
+use https://janditzen.github.io/nwxtregress/examples/VA.dta
+nwxtregress cap_cons compensation net_surplus , dvarlag(WSpmat) seed(1234)
 estat impact
 
 ```
 
-The disadvantage is that the spatial weight are constant across time. To allow for time varying spatial weights, we load the W dataset again and save it into mata:
+The disadvantage is that the spatial weight are constant across time and we had to get rid of all negative numbers.  To allow for time varying spatial weights, we load the W dataset again and but load it into the frame IO:
 
 ```
-use W
-putmata W = (ID1 ID2 sam)
-
+frame create IO
+frame IO: use https://janditzen.github.io/nwxtregress/examples/IO.dta
 ```
 
-Using the SAM dataset again, we can estimate the SAR model with time varying spatial weights. To do so we use the option ***timesparse*** and ***mata***.
+Using the VA dataset again, we can estimate the SAR model with time varying spatial weights.  To do so we use the options frame(name), where name indicates the frame and the weight matrix name corresponds to the variable names.  The data is in timesparse format so we need to use the option timesparse.  Finally it is nessary to define the year identifier and the origin and destination of the flows using the id() option:
+
+
+```
+nwxtregress cap_cons compensation net_surplus ,
+dvarlag(sam, frame(IO) id(Year ID1 ID2)  timesparse) 
+seed(1234) 
+```
+
+Alternatively we can load the spatial weight matrix into mata:
+
+```
+frame IO: putmata Wt = (Year ID1 ID2 sam), replace
+nwxtregress cap_cons compensation net_surplus , 
+dvarlag(Wt, mata timesparse) seed(1234)
+```
+
+If we want to estimate an SDM by adding the option ivarlag():
 
 ```
 nwxtregress cap_cons compensation net_surplus , 
-dvarlag(W,mata timesparse) seed(1234)
-
+dvarlag(W,mata timesparse) ivarlag(W: compensation,mata timesparse )  
+seed(1234)
 ```
 
-Finally, we want to estimate an SDM by adding the option ***ivarlag()***
+We can also define two different spatial weight matrices:
 
 ```
+mata: Wt2 = Wt[selectindex(Wt[.,4]:>2601.996),.]
 nwxtregress cap_cons compensation net_surplus , 
-dvarlag(W,mata timesparse) 
-ivarlag(W: compensation,mata timesparse )  seed(1234)
+dvarlag(Wt, mata timesparse) 
+ivarlag(Wt: net_surplus, mata timesparse) 
+ivarlag(Wt2: compensation, mata timesparse) seed(1234)
+```
 
+Total, direct and indirect effects can be calculated using estat impact:
+
+```
+estat impact
+```
+
+To predict fitted values and residuals predict can be used:
+
+```
+predict xb
+predict residuals, residual
 ```
 
 # 7. References
