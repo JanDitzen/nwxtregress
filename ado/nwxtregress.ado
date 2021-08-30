@@ -1,6 +1,6 @@
 *! nwxtregress
-*! v. a0.2
-*! 11.08.2021 - see https://janditzen.github.io/nwxtregress/
+*! v. a0.03
+*! 30.08.2021 - see https://janditzen.github.io/nwxtregress/
 
 capture program drop nwxtregress
 program define nwxtregress, eclass
@@ -46,8 +46,8 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 		}
 
 		if "`version'" != "" {
-			local version 0.02
-			noi disp "This is version 0.02 - 11.08.2021"
+			local version 0.03
+			noi disp "This is version `version' - 30.08.2021"
 			nwxtregress , version
 			return local version "`version'"
 			exit

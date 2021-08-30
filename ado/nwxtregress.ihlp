@@ -322,6 +322,7 @@ We want to estimate capital consumption by using compensation and net surplus as
 {col 8}{stata keep if Year == 1998}
 {col 8}{stata replace sam = 0 if sam < 0}
 {col 8}{stata replace sam = 0 if ID1==ID2}
+{col 8}{stata keep ID1 ID2 sam}
 {col 8}{stata reshape wide sam, i(ID1) j(ID2)}
 {col 8}{stata spset ID1}
 {col 8}{stata spmatrix fromdata WSpmat = sam* , replace}
@@ -358,7 +359,7 @@ flows using the {cmd:id()} option:{p_end}
 
 {p 4 4}If we want to estimate an SDM by adding the option {cmd:ivarlag()}:{p_end}
 
-{col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(W,mata timesparse) ivarlag(W: compensation,mata timesparse )  seed(1234)"}
+{col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234)"}
 
 {p 4 4}We can also define two different spatial weight matrices:{p_end}
 
@@ -411,4 +412,5 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {p 4}Web: {browse "https://sites.google.com/view/moradzekhnini/home"}{p_end}
 
 {title:Changelog}
-{p 4 4}{ul:Version 0.01}{p_end}
+{p 4 4}{ul:Version 0.03 (alpha)}{p_end}
+{p 8 8}- Bugs in sparse matrix multiplication and return if non sparse matrix is used fixed.{p_end}

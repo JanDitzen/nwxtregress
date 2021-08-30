@@ -3,7 +3,7 @@ program define nwxtregress_estat, rclass
 
 	gettoken subcmd rest: 0 
 	if regexm("`subcmd'","impact*")==1 {
-		impact `rest'
+		`0'
 	}
 	else {
 		noi disp "no cmd"
@@ -13,7 +13,6 @@ end
 
 program define impact, rclass
 	syntax [anything] , [trace seed(string) array(string)]
-
 		if "`anything'" == "" {
 			local varlist "`e(indepvar)'"
 		}

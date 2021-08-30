@@ -1,3 +1,8 @@
+/*
+Internal SAR Program
+Change Log:
+30.08.2021: - array with sparse indicator was not updated when nonsparse W matrix converted to sparse
+*/
 capture program drop _nwxtregsar
 program define _nwxtregsar, eclass
 
@@ -165,10 +170,15 @@ timer_on(10)
 		if (W_make_sparse == 1 & asarray(Wii,"sparse") == 0 ) {
 			"def. sparse"
 			W = SparseDefine(asarray(Wii,"W"),W_id,W_sparse)
+			/// update array
+			asarray(Wii,"sparse",1)
+			asarray(nwxtreg_Warray,"Wy",Wii)  
+			W_sparse=1
 		}
 		else {
 			W = asarray(Wii,"W")
 		}
+
 		/// order spatial weight matrix ( only row normalise now!)
 		/// here matrix is restricted to correct time periods
 		"start order"
@@ -179,7 +189,7 @@ timer_on(10)
 		if (W_sparse == 2) {
 			W_sparse = 1
 		}
-
+		
 		"order done"
 timer_off(10)
 timer_on(11)
@@ -322,6 +332,8 @@ asarray(gridr,1,(J(ndraws+nomit,3,.)))
 		asarray(output,"MCMC",(ndraws,nomit))
 
 		asarray(output,"residuals",(residuals,idt))
+"before end"
+		asarray(Wii,"sparse")
 
 		/// for testing
 		///asarray(output,"Y",(Y,idt))

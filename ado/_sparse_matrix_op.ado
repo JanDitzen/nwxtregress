@@ -1,3 +1,8 @@
+/*
+Programs for sparse matrices
+Change Log:
+30.08.2021: - bug in sparseXsparse fixed
+*/
 
 // -------------------------------------------------------------------------------------------------
 // SparseDefine
@@ -266,7 +271,7 @@ mata:
 					i++
 				}
 				if (sum(SparseN)>0) {
-					result = SparseN[selectindex(SparseN[.,1]:!=.)]
+					result = SparseN[selectindex(SparseN[.,1]:!=.),.]
 				}
 			}
 		}

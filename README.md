@@ -275,6 +275,7 @@ use https://janditzen.github.io/nwxtregress/examples/IO.dta
 keep if Year == 1998
 replace sam = 0 if sam < 0
 replace sam = 0 if ID1==ID2
+keep ID1 ID2 sam
 reshape wide sam, i(ID1) j(ID2)
 spset ID1
 spmatrix fromdata WSpmat = sam* , replace
@@ -317,7 +318,7 @@ If we want to estimate an SDM by adding the option ivarlag():
 
 ```
 nwxtregress cap_cons compensation net_surplus , 
-dvarlag(W,mata timesparse) ivarlag(W: compensation,mata timesparse )  
+dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  
 seed(1234)
 ```
 
