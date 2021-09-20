@@ -1,5 +1,7 @@
 clear all
 
+adopath + "C:\Users\jan\Dropbox (Personal)\Spatial Models in Stata\Stata\ado"
+
 use https://janditzen.github.io/nwxtregress/examples/IO.dta
 keep if Year == 1998
 replace sam = 0 if sam < 0
@@ -11,8 +13,8 @@ spmatrix fromdata WSpmat = sam* , replace
 
 
 use https://janditzen.github.io/nwxtregress/examples/VA.dta
-nwxtregress cap_cons compensation net_surplus , dvarlag(WSpmat) seed(1234)
-estat impact
+nwxtregress cap_cons compensation net_surplus , dvarlag(WSpmat) seed(1234)  
+spxtregress cap_cons compensation net_surplus , dvarlag(WSpmat) 
 
 frame create IO
 frame IO: use https://janditzen.github.io/nwxtregress/examples/IO.dta
