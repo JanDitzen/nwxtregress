@@ -1,6 +1,8 @@
 # nwxtregress
 Network Regressions in Stata with unbalanced panel data and time varying network structures or spatial weight matrices.
 
+PLEASE NOTE: THE CURRENT VERSION HAS SOME BUGS! A NEW VERSION WILL BE AVAILABLE SOON!
+
 __Table of Contents__
 1. [Syntax](#1-syntax)
 2. [Description](#2-description)
