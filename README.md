@@ -35,7 +35,10 @@ nwxtregress depvar  indepvars [if],
 
 Data has to be ```xtset``` before use. W1 and Ws define the spatial weight matrix, default is ***Sp*** object.
 ```dvarlag()``` and ```ivarlag()``` define the spatial lag of the dependent and independent variables.
- ```dvarlag()``` is repeatable and multiple spatial weight matrices are supported.
+ ```ivarlag()``` is repeatable and multiple spatial weight matrices are supported.
+
+```nwxtregress``` requires Stata 14.2 or higher. 
+```python``` and ```frame``` can only be used with Stata 16 or higher.
 
 #### Options for ```ivarlag()``` and ```dvarlag()```
 
@@ -46,6 +49,7 @@ option | Description
 **timesparse** | weight matrix is sparse and varying over time.
 **id(string)** | vector of IDs if W is a non sparse mata matrix
 **normalize(string)** | which normalization to use.
+**zero(real)** | how to treat zeros in spatial weight matrix.
 
 #### General Options
 
@@ -63,6 +67,7 @@ mcmcoptions | Description
 **nomit()** | number of omitted draws, default 500
 **barrypace(numlist)** | settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100
 **usebp** | use BarryPace trick instead of LUD for inverse of (I−ρW).
+**python** | use Python to calculate LUD.
 **seed(#)** | sets the seed
 
 #### Maintenance:
@@ -167,13 +172,15 @@ Option | Description
 **timesparse** | weight matrix is sparse and varying over time. As **sparse** but first column includes the time period.
 **id(string)** | vector of IDs if W is a non sparse mata matrix. If a frame is used, then **id()** contains the varible names of the time indicator (if applicable), the origin and destination of the flows.
 **normalize(string)** |  which normalization to use for spatial weight matrix.  Default is row normalisation.  Can be none, row (default), column, spectral or minmax, see normalisation option of [spmat creat](http://www.stata.com/manuals/spspmatrixcreate.pdf). The normalisation is done for each time period individually.
-**nosparse** | not convert weight matrix internally to a sparse matrix.
+**zero(real)** | defines how to treat zeros in spatial weight matrics.  Default is to remove zero entries for non-sparse matrices and to set zeros to 0.0001 if weight matrix is (time)sparse.
+**nosparse** | not convert weight matrix internally to a sparse matrix. Option is not recommended to use.
 **asarray(name)** | nwxtregress saves intermediate results such as the spatial weight matrix in an internal time sparse format, residuals and results from the MCMC in an array, see stored values.  It is not recommended to change contents of the array and the option to change the name should only be rarely used. The default name is NWXTREG_OBJECT#, where # is a counter if the array already existed.
 **draws()** | number of griddy gibs draws, default 2000.
 **gridlength()** | grid length, default 1000.
 **nomit()** | number of omitted draws, default 500.
 **barrypace(numlist)** | settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100.
 **usebp** | use BarryPace trick instead of LUD for inverse of (I−ρW).
+**python** | use Python to calculate the LU Decomposition.  Requires installation of Python, scipy, sfi and numpy. Using Python to calculate the LUD is faster by a factor 4-10.
 **seed(#)** | sets the seed.
 **version** | display version.
 **update** | update from Github.
