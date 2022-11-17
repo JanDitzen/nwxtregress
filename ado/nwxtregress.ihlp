@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.02 - 11. August 2021}
+{hi:help nwxtregress}{right: v. 0.1 - xx. xxx 2022}
 
 {hline}
 {title:Title}
@@ -26,6 +26,7 @@
 {p 4 13}{cmdab:nwxtreg:ress} {depvar} [{indepvars}]  [if] {cmd:,}
  {cmd:dvarlag(W1[,}{it:options1}{cmd:])}
  [{it:mcmcoptions}
+ {it:GeneralOptions}
  {cmd:nosparse}]
  {p_end}
 
@@ -35,6 +36,7 @@
     {cmd:dvarlag(W1[,}{it:options1}{cmd:])}
     {cmd:ivarlag(W2[,}{it:options1}{cmd:])}
     [{it:mcmcoptions}
+     {it:GeneralOptions}
     {cmd:nosparse}]
 {p_end}
 
@@ -68,8 +70,9 @@ using {help net install}.{p_end}
 {synopt:{it:frame(name)}}name of the frame for weight matrix data.{p_end}
 {synopt:{it:sparse}}if weight matrix is sparse.{p_end}
 {synopt:{it:timesparse}}weight matrix is sparse and varying over time.{p_end}
-{synopt:{it:id(string)}}vector of IDs if W is a non sparse mata matrix{p_end}
-{synopt:{ul:norm}alize(string)}which normalization to use.
+{synopt:{it:id(string)}}vector of IDs if W is a non sparse mata matrix.{p_end}
+{synopt:{ul:norm}alize(string)}which normalization to use.{p_end}
+{synopt:{it:zero(real)}}how to treat zeros in spatial weight matrix.{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -82,11 +85,16 @@ using {help net install}.{p_end}
 {synopt:{it:nomit()}}number of omitted draws, default 500{p_end}
 {synopt:{it:barrypace(numlist)}}settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100{p_end}
 {synopt:{it:usebp}}use BarryPace trick instead of LUD for inverse of (I−ρW).{p_end}
+{synopt:{it:python}}use {help python:Python} to calculate LUD. 
+Requires Stata 16 or higher.{p_end}
 {synopt:{it:seed(#)}}sets the seed{p_end}
 {synoptline}
 {p2colreset}{...}
 
 {p 4 4}Data has to be xtset before using {cmd:nwxtregress}; see {help xtset}. {depvars} and {indepvars}  may contain time-series operators, see {help tsvarlist}.{p_end}
+
+{p 4 4}{cmd:nwxtregress} requires Stata 14.2 or higher. 
+Options {cmd:python} and {cmd:frame} can only be used with Stata 16 or higher.{p_end}
 
 {marker description}{title:Description}
 
@@ -114,6 +122,7 @@ data for the weights is in {help mata} or saved in a {help frame}.{p_end}
 {p 6 6}{ul:1. Square matrix format}: the spatial weights are a matrix with dimension N_g x N_g. It is time constant. {break}
 An Example with a 5 x 5 matrix is:{p_end}
 
+{col 12}{ul:Example 1:}
 {col 12}        1    2    3    4
 {col 12}    +---------------------+
 {col 12}  1 |   0   .1   .2    0  |
@@ -122,11 +131,29 @@ An Example with a 5 x 5 matrix is:{p_end}
 {col 12}  4 |  .2    0   .2    0  |
 {col 12}    +---------------------+
 
+{p 6 6}Other examples of square spatial weight matrices would be contiguity matrices which have 1's
+if two units (eg. countries, regions) are neighbouring each other. An example would be:{p_end}
+
+{col 12}{ul:Example 2:}
+{col 12}        1    2    3    4
+{col 12}    +---------------------+
+{col 12}  1 |   0    1    0    1  |
+{col 12}  2 |   1    0    1    0  |
+{col 12}  3 |   0    1    0    1  |
+{col 12}  4 |   1    0    1    0  |
+{col 12}    +---------------------+
+
+{p 6 6}In this example unit 1 is neighbour to unit 2 and 4, unit 2 is neighbour to unit 1 and 3, 
+and unit 3 is neighbour to unit 2 and 4 and unit 4 is neighbour to unit 3 and 1.{p_end}
+
+{p 6 6}The remaining examples are based on the non-symmetric square matrix from Example 1.{p_end}
+
 {p 6 6}{ul:2. Sparse format}: The sparse matrix format is a {it:v} x 3 matrix, 
 where {it:v} is the number of non-zero elements in the spatial weight matrix. 
 The weight matrix is time constant.
-The first column indicates the destination, the second the origin of the flow.{break}
-A sparse matrix of the matrix from above is:{p_end}
+The first column indicates the destination, the second the origin of the flow.
+The flows are the entries of the spatial weight matrix.{break}
+A sparse matrix of the matrix of {it:Example 1} is (with zeros removed, see below):{p_end}
 
 {col 12}Destination {col 25}Origin{col 35}Flow
 {col 12}1 {col 25}2 {col 35}0.1
@@ -137,6 +164,31 @@ A sparse matrix of the matrix from above is:{p_end}
 {col 12}3 {col 25}2 {col 35}0.1
 {col 12}4 {col 25}1 {col 35}0.2
 {col 12}4 {col 25}3 {col 35}0.2
+
+{p 6 6}{bf:What are the advantages of sparse matrices?}
+The advantages are two fold: Memory and Speed.
+Both depend on the sparseness (number of zeros in relation to non-zeros).
+{break}For example, the square matrix in {it:Example 2} requires 16 elements to be saved. 
+The sparse matrix requires 8x3=24 elements to be saved.
+Clearly, in this toy example, the use of a sparse matrix would not make much sense.
+In the more realistic case, if the spatial square matrix is sparse, i.e. it has many more
+elements which are zero, then the memory-saving
+and speed gains are considerable. 
+For example, assume a contiguity matrix for 100 regions (N=100).
+Out of the 10,000 (100x100) elements of the spatial weight matrix only 
+200 will be non-zero. 
+9800 zeros are saved and consume memory. 
+{break}
+The square matrix will include  3x200 = 600 elements.
+In memory terms, the square matrix will consume 80,000bytes, while the sparse matrix
+only 2,400bytes.
+Many operations involving sparse matrices will be faster as well because the operations will
+only be performed on the non-zero elements.
+{p_end}
+
+{p 6 6}Sparse matrices in the sparse (and time-sparse format, see below)
+are commonly known as 
+{browse "https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)":COO} (Coordinate list) format.{p_end}
 
 {p 6 6}{ul:3. Time-Sparse format}: The time sparse format can handle time varying spatial weights. 
 The first column indicates the time period, the remaining are the same as
@@ -163,11 +215,19 @@ above for the first and the square for the second period:{p_end}
 {col 12}2 {col 20}4 {col 35}1 {col 45}0.4
 {col 12}2 {col 20}4 {col 35}3 {col 45}0.4
 
-{p 4 4}Internally, {cmd:nextregress} will always use the time sparse format. 
+{p 4 4}Internally, {cmd:nwxtregress} will always use the time sparse format. 
 This ensures that unbalanced panels do not pose a problem. 
-{cmd:nextregress} comes with functions for creating sparse matrices,
+{cmd:nwxtregress} comes with functions for creating sparse matrices,
 coplying a sparse matrix into a squared format, 
 and functions for mathematical operations (transpose and multiplication).{p_end}
+
+{p 4 4}{cmd:nwxtregress} handels zeros in the spatial weight matrix depending on the format of the weight matrix.
+If the weight matrix is non-sparse, zeros are removed when the matrix is converted into sparse format.
+If the weight matrix is (time)sparse and a zero appears, it possibily indicates that there is a flow, but it is too small 
+to be measured and therefore assigned a zero.
+As a default, {cmd:nwxtregress} applies a 0.0001 to such values.
+The behaviour can altered using the option {cmd:zero()}.
+To remove zeros use either {cmd:zero(0)} or {cmd:zero(.)}.{p_end}
 
 
 {marker options}{...}
@@ -195,6 +255,11 @@ Can be {it:none}, {it:row} (default), {it:{ul:col}umn}, {it:{ul:spec}tral} or {i
 The normalisation is done for each time period individually.
 
 {phang}
+{opt zero(real)} defines how to treat zeros in spatial weight matrics.
+Default is to remove zero entries for non-sparse matrices and 
+to set zeros to 0.0001 if weight matrix is (time)sparse.
+
+{phang}
 {opt nosparse} not convert weight matrix internally to a sparse matrix.
 
 {phang}
@@ -220,6 +285,11 @@ the array already existed.{p_end}
 
 {phang}
 {opt usebp} use BarryPace trick instead of LUD for inverse of (I−ρW).
+
+{phang}
+{opt python} use {help python:Python} to calculate the LU Decomposition. 
+Requires installation of Stata 16, Python, scipy, sfi and numpy.
+Using Python to calculate the LUD is faster by a factor 4-10.
 
 {phang}
 {opt seed(#)} sets the {help seed}.
