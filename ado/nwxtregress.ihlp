@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.1 - 16.11.2022}
+{hi:help nwxtregress}{right: v. 0.11 - 01. December 2022}
 
 {hline}
 {title:Title}

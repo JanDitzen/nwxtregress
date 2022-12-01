@@ -1,6 +1,10 @@
 *! nwxtregress
-*! v. 0.1
-*! 16.11.2022 - see https://janditzen.github.io/nwxtregress/
+*! v. 0.11
+*! 01.12.2022 - see https://janditzen.github.io/nwxtregress/
+/*
+Change Log:
+- 01.12.2022 - fix if spatial weight matrix was empty and python used
+*/
 
 /*
 This file contains all Stata programs.
@@ -12,18 +16,18 @@ program define nwxtregress, eclass
 syntax varlist(ts min=2) [if] 	, 	[	///
 		/// spatial weight matrix settings
 		dvarlag(string)					/// name of spatial weights matrix for dependent var
-		seed(string)					/// set seed
+		seed(string)					/// set seed	
 		* 								/// ivlag weights
 		update							/// update from github
 		version							/// shows version
 		*								/// remaining options
-		]
-
+		] 
+		
 		version 14.2
 
 		if "`update'" != "" {
 			qui nwxtregress, version
-			local v_installed "`r(version)'"
+			local v_installed "`r(version)'"	
 			cap net uninstall nwxtregress
 			if _rc == 0 {
 				noi disp "Version `v_installed' removed."
@@ -53,7 +57,7 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 
 		if "`version'" != "" {
 			local version 0.1
-			noi disp "This is version `version' - 16.11.2022"
+			noi disp "This is version `version' - xx.xx.2022"
 			nwxtregress , version
 			return local version "`version'"
 			exit
@@ -83,8 +87,8 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 			set seed `seed'
 		}
 
-		_nwxtreg `varlist' `if' , `options' dvarlag(`dvarlag')
-
+		_nwxtreg `varlist' `if' , `options' dvarlag(`dvarlag')		
+		
 
 end
 
@@ -99,7 +103,7 @@ program define _nwxtreg, eclass
 		trace							/// trace for seeing all output
 		/// spatial option
 		NOSParse 						/// do not use sparse matrix internally
-		/// sampling options
+		/// sampling options			
 		draws(integer 2000)				/// number of griddy gibs draws
 		gridlength(integer 1000)		/// grind length
 		NOMIT(integer 500)				/// number of omitted draws
@@ -114,10 +118,10 @@ program define _nwxtreg, eclass
 		/// output
 		asarray(string)					/// name of array
 		* 								/// ivlag weights
-		]
-
+		]		
+		
 		*** Get Array Name
-		GetArrayName `asarray'
+		GetArrayName `asarray'	
 
 		*** Check if option python is used that python is installed
 		if `c(stata_version)' >= 16 {
@@ -138,12 +142,12 @@ program define _nwxtreg, eclass
 			exit
  		}
  		else {
-			if `mataversion' < 1.0 {
+			if `mataversion' < 1.01 {
 				noi disp "mata library outdated. Pleae update nwxtregress:"
 				noi disp as smcl "{stata:nwxtregress, update}"
 				exit
 			}
-		}
+		}			
 
 		if "`trace'" == "" {
 			local trace "qui"
@@ -153,7 +157,7 @@ program define _nwxtreg, eclass
 		}
 		noi di ""
 		`trace' {
-
+			
 
 			*** mark sample
 			tempname touse
@@ -162,19 +166,19 @@ program define _nwxtreg, eclass
 			*** get id and t var
 			_xt
 			local tvar_o `r(tvar)'
-			local idvar `r(ivar)'
+			local idvar `r(ivar)'	
 
 			*** make sure data is sorted
 			issorted `idvar' `tvar_o'
-
+			
 			*** generate new tvar from 1...T
 			tempvar tvar
 			local tvar `tvar_o'
-
-			tsunab indepdepvars :  `varlist'
-			local spatial =word("`indepdepvars'",1)
-
-			**** BP options
+			
+			tsunab indepdepvars :  `varlist'			
+			local spatial =word("`indepdepvars'",1)		
+			
+			**** BP options 
 			if "`usebp'" == "" {
 				local uselud "uselud"
 			}
@@ -186,17 +190,17 @@ program define _nwxtreg, eclass
 			markout `touse' `indepdepvars' `spatial'
 
 			*** process spatial weigth matrices
-			tempname nwxtreg_Warray
+			tempname nwxtreg_Warray 
 			mata `nwxtreg_Warray' = asarray_create()
 
 			*** Depvar
-			gettoken 1 2: dvarlag , parse(",")
+			gettoken 1 2: dvarlag , parse(",") 
 			local w_dep `1'
 			spmat_set `1' , `=subinstr("`2'",",","",.)' varlist(`spatial') arrayname("`nwxtreg_Warray'") isdep
-
+			
 			local sar = 1
 			local sdmsar = "SAR"
-
+			
 			*** Indepvar
 			local rest "`options'"
 			while  "`rest'" != "" {
@@ -207,21 +211,21 @@ program define _nwxtreg, eclass
 					gettoken cur rest: rest, bind
 
 					local 0 ", `cur'"
-					syntax [anything], ivarlag(string)
+					syntax [anything], ivarlag(string) 
 
-					gettoken 1 2: ivarlag , parse(",")
+					gettoken 1 2: ivarlag , parse(",") 
 					local 2 = subinstr("`2'",",","",.)
 					gettoken tmp1 tmp2 : 1, parse(":")
 					local tmp2 = subinstr("`tmp2'",":","",.)
 					spmat_set `tmp1' , `2' varlist(`tmp2') arrayname("`nwxtreg_Warray'") wname(`wname')
 				}
 				else {
-					mata asarray(`nwxtreg_Warray',"Wdep_indep",1)
+					mata asarray(`nwxtreg_Warray',"Wdep_indep",1)	
 				}
 				local sar = 0
 				local sdmindic sdm
 			}
-
+			
 			*** Use sparse matrices internally
 			if "`nosparse'" == "" {
 				local nosparse = 1
@@ -247,14 +251,14 @@ program define _nwxtreg, eclass
 					local bp2 = 100
 				}
 			}
-
+			
 			*** clear ereturn
 			tempname DataTrans
 			mata `DataTrans' = ("`fe'"!=""),("`noconstant'"!=""),("`standardize'"!="")
 			mata `asarray' = nwxtreg_estimate("`indepdepvars'","`touse'","`idvar' `tvar'",`sar',`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'),`DataTrans',("`python'"!=""),("`trace'"!=""))
-
+			
 		}
-
+		
 		output_table_main `asarray', varnames("`indepdepvars'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial `sdmsar'") warray("`nwxtreg_Warray'") `sdmindic'
 
 		ereturn local estat_cmd "nwxtregress_estat"
@@ -265,20 +269,20 @@ program define _nwxtreg, eclass
 		tempname sparse
 		mata st_numscalar("`sparse'",asarray(asarray(`nwxtreg_Warray',"Wy"),"sparse"))
 		ereturn hidden scalar issparse = `sparse'
-
+		
 		ereturn local cmd "nwxtregress"
 		ereturn hidden local type "`sdmsar'"
 
 		mata mata drop `nwxtreg_Warray'
 		cap mata mata drop  nwxtreg_* __*
-
+		
 end
 
 // issorted checks if data is sorted, if not then sorts it
 capture program drop issorted
 program define issorted
-	syntax	varlist
-
+	syntax	varlist 
+	
 	local sorted : dis "`:sortedby'"
 	if "`sorted'" != "`varlist'" {
 	    noi disp "sort data"
@@ -307,7 +311,7 @@ program define spmat_set
 	if "`wname'" == "" {
 		tempname wname
 	}
-	tempname w_ary
+	tempname w_ary 
 	mata: `w_ary' = asarray_create()
 
 	if "`sparse'" != "" & "`timesparse'" != "" {
@@ -316,7 +320,7 @@ program define spmat_set
 	}
 
 	/// default: non sparse remove zeros, sparse treat them as 0.0001
-	if "`zero'" == "" & "`sparse'`timesparse'" != "" local zero 0.0001
+	if "`zero'" == "" & "`sparse'`timesparse'" != "" local zero 0.0001 
 	else if "`zero'" == "" & "`sparse'`timesparse'" == "" local zero .
 
 	if "`addzero'" != "" {
@@ -326,10 +330,10 @@ program define spmat_set
 		local addzero = 0
 	}
 
-
+	
 	if "`mata'" == "" & "`frame'" == "" {
 		/// spmat
-		tempname w_id
+		tempname w_id 
 		spmatrix matafromsp `wname' `w_id' = `wname_init'
 		mata asarray(`w_ary',"W_id",`w_id')
 		mata asarray(`w_ary',"W",`wname')
@@ -353,20 +357,20 @@ program define spmat_set
 		mata asarray(`w_ary',"W",(`idt',`data'))
 
 		mata mata drop `data' `idt'
-
+		
 		tempname w_id
 		frame `frame': mata `w_id' = st_data(.,"`id'")
-
+		
 		local wname_init = word("`wname_init'",1)
 		local wname  "`wname_init'"
 
 		if "`timesparse'" != "" mata asarray(`w_ary',"W_id",uniqrows(`w_id'[.,2]))
-		if "`sparse'" != "" 	mata asarray(`w_ary',"W_id",uniqrows(`w_id'[.,1]))
-
+		if "`sparse'" != "" 	mata asarray(`w_ary',"W_id",uniqrows(`w_id'[.,1]))		
+ 		
 	}
 	else if "`mata'" != "" & "`frame'" == "" {
 		mata asarray(`w_ary',"W",`wname_init')
-		mata `wname' = `wname_init'
+		mata `wname' = `wname_init'	
 
 		if "`id'" == "" {
 			if "`sparse'`timesparse'" == "" {
@@ -377,7 +381,7 @@ program define spmat_set
 			}
 			else if "`sparse'" == "" & "`timesparse'" != "" {
 				mata asarray(`w_ary',"W_id",uniqrows(`wname_init'[.,2]))
-			}
+			} 
 		}
 		else {
 			mata asarray(`w_ary',"W_id",`id')
@@ -388,7 +392,7 @@ program define spmat_set
 	if "`sparse'`timesparse'" == "" mata asarray(`w_ary',"sparse",0)
  	else if "`sparse'" != "" 	mata asarray(`w_ary',"sparse",1)
 	else if "`timesparse'" != ""  	mata asarray(`w_ary',"sparse",2)
-
+	
 
 	*** which normalisation
 	if "`normalize'" == ""  		mata asarray(`w_ary',"norm",1)
@@ -396,8 +400,8 @@ program define spmat_set
 	else if "`normalize'" == "row" 		mata asarray(`w_ary',"norm",1)
  	else if regexm("`normalize'","col*") 	mata asarray(`w_ary',"norm",2)
 	else if regexm("`normalize'","spec*")  	mata asarray(`w_ary',"norm",3)
-	else if regexm("`normalize'","minmax")  mata asarray(`w_ary',"norm",4)
-
+	else if regexm("`normalize'","minmax")  mata asarray(`w_ary',"norm",4)	
+	
 	mata asarray(`w_ary',"zero",`zero')
 	mata asarray(`w_ary',"addzero",`addzero')
 
@@ -412,7 +416,7 @@ program define spmat_set
 		mata asarray(`w_ary',"Wyname","`wname_init'")
 		mata asarray(`arrayname',"`wname'",`w_ary')
 	}
-	cap mata mata drop `w_ary'
+	cap mata mata drop `w_ary' 
 	disp "Spatial Weight Set"
 	*cap mata mata drop `wname'
 end
@@ -437,7 +441,7 @@ syntax [anything]
 		local i = 0
 		while _rc == 0 {
 			local i = `i' + 1
-			cap mata asarray_contains(`anything'`i', "W")
+			cap mata asarray_contains(`anything'`i', "W")			
 		}
 		c_local asarray `anything'`i'
 	}
@@ -458,10 +462,10 @@ program _dotspct
                 if `"`title'"' != "" {
                         if `reps' > 0 {
                                 di as txt "`title' ("   ///
-                                   as res `reps' as txt ") "
+                                   as res `reps' as txt ") " 
                         }
                         else {
-                                di as txt "`title'"
+                                di as txt "`title'" 
                         }
                 }
                 if "`nodots'" == "" {
@@ -472,27 +476,27 @@ program _dotspct
                                   "{hline 2}{c +}{hline 3} 50   %"
                 }
                 exit
-        }
+        }	
 	else if `reps' < 100 {
 		local start = floor((`i'-1)*100/`reps')	+1
-		local ende = min(`start' + floor(100/`reps')-1,100)
+		local ende = min(`start' + floor(100/`reps')-1,100) 
 		local ende = ((floor((`i')*100/`reps')+1 - `ende') >1) + `ende'
 		forvalues ii = `start'(1)`ende' {
-			_dotspct `ii' `rc' , reps(100)
-		}
+			_dotspct `ii' `rc' , reps(100) 
+		}			
 	}
 	else if `reps' > 100 {
 		 local check = floor(`i'*100/`reps') - floor((`i'-1)*100/`reps')
-		 if `check' > 0 _dotspct `=floor(`i'*100/`reps')' `rc' , reps(100)
+		 if `check' > 0 _dotspct `=floor(`i'*100/`reps')' `rc' , reps(100) 
 		  else {
-                        if `i' == `reps' _dotspct 100 `rc' , reps(100)
+                        if `i' == `reps' _dotspct 100 `rc' , reps(100) 
                  }
 	}
 	else {
 		_dots 1 `rc'
 		if `i' == 50 di as txt "" _col(51) %5.0f 50
 		if `i' == 100 di as txt "" _col(51) %5.0f 100
-	}
+	}		
 end
 
 // -------------------------------------------------------------------------------------------------
@@ -510,7 +514,7 @@ cap program drop parse_spatial_lag
 program define parse_spatial_lag
 	syntax anything(name=wname) , [mata id(string) sparse timesparse] name(string)
 
-	tempname w_id
+	tempname w_id 
 
 	if "`sparse'" != "" & "`timesparse'" != "" {
 		*** time sparse implies sparse
@@ -531,9 +535,9 @@ program define parse_spatial_lag
 		}
 		else if "`sparse'" == "" & "`timesparse'" != "" {
 			mata `w_id' = uniqrows(`wname'[.,2])
-		}
+		} 
 	}
-	else {
+	else {	
 		mata `w_id' = `id'
 	}
 
@@ -557,7 +561,7 @@ program define parse_spatial_lag
 	}
 
 	*** Return
-
+	
 	c_local nosparse `nosparse'
 
 end
@@ -579,11 +583,11 @@ program define output_table_main, eclass
 	mata nwxtreg_post_matrix(asarray(`matname',"bhat"),"`b'", asarray(`matname',"Wx_order"),0)
 	mata nwxtreg_post_matrix(asarray(`matname',"phat"),"`bp'",asarray(`matname',"Wy_order"),0)
 	mata nwxtreg_post_matrix(asarray(`matname',"bvarcov"),"`varcov'",asarray(`matname',"Wx_order"),1)
-	mata nwxtreg_post_matrix(asarray(`matname',"pvarcov"),"`pvarcov'",asarray(`matname',"Wy_order"),1)
+	mata nwxtreg_post_matrix(asarray(`matname',"pvarcov"),"`pvarcov'",asarray(`matname',"Wy_order"),1)	
 
 	mata st_local("K",strofreal(asarray(`matname',"dimensions")[3]))
-
-	/// Add spatial coeff
+	
+	/// Add spatial coeff 
 	matrix `b' = `b', `bp'
 	matrix `varcov' = (`varcov' , J(rowsof(`varcov'),colsof(`pvarcov'),0)) \ (J(rowsof(`pvarcov'),colsof(`varcov'),0), `pvarcov' )
 
@@ -595,7 +599,7 @@ program define output_table_main, eclass
 	matrix roweq `varcov' = `tmp'
 
 	/// Post
-	ereturn clear
+	ereturn clear 
 	ereturn post `b' `varcov' , depname(`y') esample(`touse')
 
 	mata st_numscalar("e(N)",(asarray(`matname',"dimensions")[1]))
@@ -617,14 +621,14 @@ program define output_table_main, eclass
 	ereturn local tvar "`tvar'"
 	ereturn local indepvar "`varnames'"
 
-	local maxline = c(linesize)
+	local maxline = c(linesize)	
 	**allow max linesize of 100
 	if `maxline' > 100 {
 		local maxline = 100
 	}
 	local abname = 14
 	local col_i = `abname' + 1
-
+	
 	local level = c(level)
 	local maxline = `abname' + 66
 	di ""
@@ -634,30 +638,30 @@ program define output_table_main, eclass
 
 	di in gr "Panel Variable (i): " in ye abbrev(e(idvar),`abname') in gr ///
 		_col(`=`maxline'-80+50') "Number of groups" _col(`=`maxline'-80+68') "=" ///
-		_col(`=`maxline'-80+71') in ye %9.0g e(N_g)
+		_col(`=`maxline'-80+71') in ye %9.0g e(N_g) 
 
 
 	if e(T) == e(Tavg) {
 		di in gr "Time Variable (t): " in ye abbrev(e(tvar),`abname') in gr ///
 				_col(`=`maxline'-80+50') "Obs. of group" _col(`=`maxline'-80+68') "=" ///
-				_col(`=`maxline'-80+71') in ye %9.0g e(T)
+				_col(`=`maxline'-80+71') in ye %9.0g e(T) 
 	}
 	else {
 		di in gr "Time Variable (t): " in ye abbrev(e(tvar),`abname') in gr ///
 				_col(`=`maxline'-80+50') "Obs. of group:" _col(`=`maxline'-80+68') ///
-				_col(`=`maxline'-80+71') in ye %9.0g e(T)
+				_col(`=`maxline'-80+71') in ye %9.0g e(T) 
 		di in gr _col(`=`maxline'-80+68-4') in gr "min = " ///
-				_col(`=`maxline'-80+71') in ye %9.0f e(Tmin)
+				_col(`=`maxline'-80+71') in ye %9.0f e(Tmin) 	
 		di in gr _col(`=`maxline'-80+68-4') in gr "avg = " ///
-				_col(`=`maxline'-80+71') in ye %9.0f e(Tavg)
+				_col(`=`maxline'-80+71') in ye %9.0f e(Tavg) 	
 		di in gr _col(`=`maxline'-80+68-4') in gr "max = " ///
-				_col(`=`maxline'-80+71') in ye %9.0f e(Tmax)
+				_col(`=`maxline'-80+71') in ye %9.0f e(Tmax) 	
 	}
-
+				  
 	di in gr _col(`=`maxline'-80+50') in gr "R-squared" _col(`=`maxline'-80+68') "=" ///
-				_col(`=`maxline'-80+71') in ye %9.2f e(r2)
+				_col(`=`maxline'-80+71') in ye %9.2f e(r2) 	
 	di in gr _col(`=`maxline'-80+50') in gr "Adj. R-squared" _col(`=`maxline'-80+68') "=" ///
-				_col(`=`maxline'-80+71') in ye %9.2f e(r2_a)
+				_col(`=`maxline'-80+71') in ye %9.2f e(r2_a)	
 
 	/// Header
 	local maxline = `maxline' - 2
@@ -672,7 +676,7 @@ program define output_table_main, eclass
 	local col = `col' + 1 + 4
 	di as text _col(`col') "P>|z|"  _c
 	local col = `col' + 5 + 5
-	di as text _col(`col') "[`level'% Conf. Interval]"
+	di as text _col(`col') "[`level'% Conf. Interval]"    
 	di as text "{hline `col_i'}{c +}{hline `=`maxline'-`col_i''}"
 
 	/// Loop over variables
@@ -690,7 +694,7 @@ program define output_table_main, eclass
 	di as text "{hline `col_i'}{c +}{hline `=`maxline'-`col_i''}"
 
 	if "`sdm'"!= "" {
-
+	
 		/// now loop over remaining
 		mata st_local("ListW",invtokens(uniqrows(asarray(`matname',"Wx_order")[.,1])'))
 		mata st_local("Wy",asarray(`matname',"Wy_order")[1,1])
@@ -703,7 +707,7 @@ program define output_table_main, eclass
 			di as text "{hline `col_i'}{c +}{hline `=`maxline'-`col_i''}"
 		}
 	}
-
+	
 	/// display sigma
 	mata nwxtreg_output_matrix(asarray(`matname',"shat"),asarray(`matname',"svarcov"),asarray(`matname',"slower"),asarray(`matname',"supper"),"/sigma_u","",`col_i',1,"",1)
 	di as text "{hline `col_i'}{c BT}{hline `=`maxline'-`col_i''}"
@@ -718,7 +722,7 @@ program define output_table
 	local varname `1'
 	local coeff `2'
 	local se `3'
-	local tval `4'
+	local tval `4' 
 	local lower  `5'
 	local upper `6'
 	local col `7'
@@ -737,7 +741,7 @@ program define output_table
 	di as result _column(`col') %9.8g `se' _continue
 	local col = `col' + 8 + 3
 	di as result _column(`col') %6.2f `tval' _continue
-
+	
 	local col = `col' + 10
 	di as result _column(`col') %5.3f `pval' _continue
 	local col = `col' + 10
@@ -755,7 +759,7 @@ program define nwxtreg_check_python
 		python query
 		if r(initialized) == 1 {
 			cap python which numpy
-			local HasNumpy = _rc
+			local HasNumpy = _rc	
 
 			cap python which scipy
 			local HasScipy = _rc
@@ -770,12 +774,13 @@ program define nwxtreg_check_python
 				if `HasSfi' != 0 noi disp "  sfi"
 				noi disp "Please install them before using the option {it:python}."
 			}
+			exit
 		}
 		else {
 			noi disp as error "Python not initialized."
 			exit
 		}
-	}
+	}	
 
 
 end
@@ -799,39 +804,39 @@ import numpy as np
 
 
 def nwpython_lud(data_n,n_n,rgrid_n,output_n):
-
-	dta = np.array(Mata.get(data_n))
+	
+	dta = np.array(Mata.get(data_n))	
 
 	rows = dta[:,0]
 	cols = dta[:,1]
 	dta = dta[:,2]
-	rgrid = np.array(Mata.get(rgrid_n))
+	rgrid = np.array(Mata.get(rgrid_n))	
 
 	n = np.array(Mata.get(n_n),dtype=np.intc)
-
+		
 	rows = rows.flatten()
 	cols = cols.flatten()
 	dta = dta.flatten()
-	n = n.flatten()
+	n = n.flatten()	
 	rgrid = rgrid.flatten()
 
 	results = np.zeros((len(rgrid),1))
-
+	
 	for i in range(len(rgrid)):
 		ri = rgrid[i]
 
 		dta_x = - np.multiply(dta,ri)
 
-		data_sp = csc_matrix((dta_x,(rows,cols)),shape = (n))
+		data_sp = csc_matrix((dta_x,(rows,cols)),shape = (n))	
 
-		data_sp.setdiag(1,k=0)
+		data_sp.setdiag(1,k=0)		
 		lud = sla.spilu(data_sp)
-		Ai = lud.L+lud.U-identity(n[0])
+		Ai = lud.L+lud.U-identity(n[0])	
 		detmi = np.array(Ai.diagonal())
 		detmi[detmi<=0] = 1
 		detmil = np.sum(np.log(detmi.data))
-		results[i,:] = detmil
+		results[i,:] = detmil	
 
-	Mata.store(output_n,results)
+	Mata.store(output_n,results)	
 end
 }
