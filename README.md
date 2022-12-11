@@ -67,7 +67,7 @@ mcmcoptions | Description
 **nomit()** | number of omitted draws, default 500
 **barrypace(numlist)** | settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100
 **usebp** | use BarryPace trick instead of LUD for inverse of (I−ρW).
-**python** | use Python to calculate LUD.
+**python** | use Python to calculate LUD or Barry Pace trick.
 **seed(#)** | sets the seed
 
 #### Maintenance:
@@ -180,7 +180,7 @@ Option | Description
 **nomit()** | number of omitted draws, default 500.
 **barrypace(numlist)** | settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100.
 **usebp** | use BarryPace trick instead of LUD for inverse of (I−ρW).
-**python** | use Python to calculate the LU Decomposition.  Requires installation of Python, scipy, sfi and numpy. Using Python to calculate the LUD is faster by a factor 4-10.
+**python** | use Python to calculate the LU Decomposition or BarryPace trick.  Requires installation of Python, scipy, sfi and numpy. Using Python to calculate the LUD is faster by a factor 4-10.
 **seed(#)** | sets the seed.
 **version** | display version.
 **update** | update from Github.

@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.11 - 01. December 2022}
+{hi:help nwxtregress}{right: v. 0.12 - 11. December 2022}
 
 {hline}
 {title:Title}
@@ -85,7 +85,7 @@ using {help net install}.{p_end}
 {synopt:{it:nomit()}}number of omitted draws, default 500{p_end}
 {synopt:{it:barrypace(numlist)}}settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100{p_end}
 {synopt:{it:usebp}}use BarryPace trick instead of LUD for inverse of (I−ρW).{p_end}
-{synopt:{it:python}}use {help python:Python} to calculate LUD. 
+{synopt:{it:python}}use {help python:Python} to calculate LUD or BarryPace trick. 
 Requires Stata 16 or higher.{p_end}
 {synopt:{it:seed(#)}}sets the seed{p_end}
 {synoptline}
@@ -287,7 +287,7 @@ the array already existed.{p_end}
 {opt usebp} use BarryPace trick instead of LUD for inverse of (I−ρW).
 
 {phang}
-{opt python} use {help python:Python} to calculate the LU Decomposition. 
+{opt python} use {help python:Python} to calculate the LU Decomposition or BarryPace trick. 
 Requires installation of Stata 16, Python, scipy, sfi and numpy.
 Using Python to calculate the LUD is faster by a factor 4-10.
 
@@ -313,6 +313,7 @@ Using Python to calculate the LUD is faster by a factor 4-10.
 {synoptline}
 {synopt:{it:seed(#)}}set seed for Barry Pace matrix inversion.{p_end}
 {synopt:{it:array(name)}}name of array with saved contents from {cmd:nwxtregress}, see {help nwxtregress##saved_vales:stored results}.{p_end}
+{synopt:{it:python}} use Python to calculate Barry Pace trick.{p_end}
 {synoptline}
 {p2colreset}{...}
 
