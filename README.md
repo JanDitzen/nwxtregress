@@ -3,6 +3,8 @@ Network Regressions in Stata with unbalanced panel data and time varying network
 
 Current Version: 0.13 (17.01.2023)
 
+[nwxtregress](https://github.com/janditzen/nwxtregress) | ![version](https://img.shields.io/github/v/release/janditzen/nwxtregress) | ![release](https://img.shields.io/github/release-date/janditzen/nwxtregress) | |
+
 __Table of Contents__
 1. [Syntax](#1-syntax)
 2. [Description](#2-description)
