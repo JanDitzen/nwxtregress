@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.12 - 11. December 2022}
+{hi:help nwxtregress}{right: v. 0.13 - 17. January 2023}
 
 {hline}
 {title:Title}
@@ -27,7 +27,8 @@
  {cmd:dvarlag(W1[,}{it:options1}{cmd:])}
  [{it:mcmcoptions}
  {it:GeneralOptions}
- {cmd:nosparse}]
+    {cmd:absorb(}{it:absorb_varlist , {opt keep:singletons}}{cmd:)}
+    {cmd:transform(}{it:transform_varlist, transform_options}{cmd:)}]
  {p_end}
 
 {p 4}{ul:Spatial Durbin Model (SAR)}{p_end}
@@ -37,7 +38,8 @@
     {cmd:ivarlag(W2[,}{it:options1}{cmd:])}
     [{it:mcmcoptions}
      {it:GeneralOptions}
-    {cmd:nosparse}]
+    {cmd:absorb(}{it:absorb_varlist , {opt keep:singletons}}{cmd:)}
+    {cmd:transform(}{it:transform_varlist, transform_options}{cmd:)}]
 {p_end}
 
 {p 4 13}where {cmd:W1} and {cmd:W2} are spatial weight matrices. Default is {help Sp} object.
@@ -53,48 +55,66 @@ and independent variables.
 {cmd:update} updates {cmd:nwxtregress} from {browse "https://janditzen.github.io/nwxtregress/":GitHub}
 using {help net install}.{p_end}
 
-{p 4}{ul:General Options}{p_end}
+{dlgtab:General Options}
 {synoptset 20}{...}
 {synopt:Option}Description{p_end}
 {synoptline}
-{synopt:{it:nosparse}}do not convert weight matrix internally to a sparse matrix{p_end}
-{synopt:{it:asarray(name)}}change name of array with estimation results and info{p_end}
+{synopt:{opt nosparse}}not convert weight matrix internally to a sparse matrix{p_end}
+{synopt:{opt asarray(name)}}change name of array with estimation results and info{p_end}
+{synopt:{opt stand:ardize}}standardizes all variables, short for {opt transform(_all, by(idvar))}{p_end}
 {synoptline}
 {p2colreset}{...}
 
-{p 4}{ul:{it:Options1}}{p_end}
+{dlgtab:Options1}
 {synoptset 20}{...}
 {synopt:Option}Description{p_end}
 {synoptline}
-{synopt:{it:mata}}declares weight matrix is mata matrix.{p_end}
-{synopt:{it:frame(name)}}name of the frame for weight matrix data.{p_end}
-{synopt:{it:sparse}}if weight matrix is sparse.{p_end}
-{synopt:{it:timesparse}}weight matrix is sparse and varying over time.{p_end}
-{synopt:{it:id(string)}}vector of IDs if W is a non sparse mata matrix.{p_end}
-{synopt:{ul:norm}alize(string)}which normalization to use.{p_end}
-{synopt:{it:zero(real)}}how to treat zeros in spatial weight matrix.{p_end}
+{synopt:{opt mata}}declares weight matrix is mata matrix.{p_end}
+{synopt:{opt frame(name)}}name of the frame for weight matrix data.{p_end}
+{synopt:{opt sparse}}if weight matrix is sparse.{p_end}
+{synopt:{opt timesparse}}weight matrix is sparse and varying over time.{p_end}
+{synopt:{opt id(string)}}vector of IDs if W is a non sparse mata matrix.{p_end}
+{synopt:{opt norm:alize(string)}}which normalization for spatial weight matrix to use.{p_end}
+{synopt:{opt zero(real)}}how to treat zeros in spatial weight matrix.{p_end}
 {synoptline}
 {p2colreset}{...}
 
-{p 4}{ul:{it:mcmcoptions}}{p_end}
+{dlgtab:mcmcoptions}
 {synoptset 20}{...}
 {synopt:Option}Description{p_end}
 {synoptline}
-{synopt:{it:draws()}}number of griddy gibs draws, default 2000{p_end}
-{synopt:{it:gridlength()}}grid length, default 1000{p_end}
-{synopt:{it:nomit()}}number of omitted draws, default 500{p_end}
-{synopt:{it:barrypace(numlist)}}settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100{p_end}
-{synopt:{it:usebp}}use BarryPace trick instead of LUD for inverse of (I−ρW).{p_end}
-{synopt:{it:python}}use {help python:Python} to calculate LUD or BarryPace trick. 
+{synopt:{opt draws()}}number of griddy gibs draws, default 2000{p_end}
+{synopt:{opt gridlength()}}grid length, default 1000{p_end}
+{synopt:{opt nomit()}}number of omitted draws, default 500{p_end}
+{synopt:{opt barrypace(numlist)}}settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100{p_end}
+{synopt:{opt usebp}}use BarryPace trick instead of LUD for inverse of (I−ρW).{p_end}
+{synopt:{opt python}}use {help python:Python} to calculate LUD or BarryPace trick. 
 Requires Stata 16 or higher.{p_end}
-{synopt:{it:seed(#)}}sets the seed{p_end}
+{synopt:{opt seed(#)}}sets the seed{p_end}
 {synoptline}
 {p2colreset}{...}
+
+
+{dlgtab:transform_options}
+{synoptset 20}{...}
+{synopt:Option}Description{p_end}
+{synoptline}
+{synopt:{opt transform_varlist}}variables to be transformed. {cmd:_all} transformes all dependent and independent variables.
+If not specified, {cmd:_all} assumed{p_end}
+{synopt:{opt by(varname)}}variable defining level of transformation, see {help by}{p_end}
+{synopt:{opt after}}transform variables after spatial lags are calcuted.{p_end}
+{synopt:{opt wy}}transform spatial lag of dependent variable{p_end}
+{synopt:{opt wx}}transform spatial lag of independent variables as defined by {it:varlist}{p_end}
+{synopt:{opt nom:ean}}do not demean data{p_end}
+{synopt:{opt nosd}}do not standardize data (standard deviation of 1).{p_end}
 
 {p 4 4}Data has to be xtset before using {cmd:nwxtregress}; see {help xtset}. {depvars} and {indepvars}  may contain time-series operators, see {help tsvarlist}.{p_end}
 
-{p 4 4}{cmd:nwxtregress} requires Stata 14.2 or higher. 
-Options {cmd:python} and {cmd:frame} can only be used with Stata 16 or higher.{p_end}
+{p 4 4}{cmd:nwxtregress} requires Stata 14.2 or higher.
+Options {cmd:python} and {cmd:frame} can only be used with Stata 16 or higher.
+{help moremata} is required and option {cmd:absorb()} requires {help reghdfe}.
+{p_end}
+
 
 {marker description}{title:Description}
 
@@ -300,6 +320,57 @@ Using Python to calculate the LUD is faster by a factor 4-10.
 {phang}
 {opt update} update from Github.
 
+{title:(High dimensional) Fixed Effects}
+
+{p 4 4}{cmd:nwxtregress} can remove high dimensional fixed effects using {help reghdfe}.
+The fixed effects are partialled out before spatial lags are cacluated.
+Constant is automatically removed when {cmd:absorb()} is used.
+The syntax is:{p_end}
+
+{p 8 12}{opt absorb(varlist, keepsingeltons)}{p_end}
+
+{phang}
+{opt varlist} categorical variables that identify the fixed effects to be absorbed. 
+
+{phang}
+{opt keepsingelton} keep singelton units.
+
+{title:Transformation}
+
+{p 4 4}{cmd:nwxtregress} can demean and standardize dependent and independent variables, before or after the calculation of
+the spatial lags. Spatial lags can be transformed as well. 
+The syntax is:{p_end}
+
+{p 8 12}{opt transform([varlist] [, by(varname)) after nomean nosd wy wx])}{p_end}
+
+{phang}
+{opt varlist} variables to be transformed. {it:_all} implies all dependent and independent variabkes. 
+If left empty, {it:_all} assumed.
+
+{phang}
+{opt by(varname)} variable defining transformation. Default is {cmd:by(ID)}, where ID identifies the cross-sections.
+{cmd:by(_all)} transforms data across all cross-sections.
+
+{phang}
+{opt after} transform data after caculation of spatial lags. Default is to transform data first.
+
+{phang}
+{opt nom:ean} do not demean data.
+
+{phang}
+{opt nosd} do not standardize data.
+
+{phang}
+{opt wy} transform spatial lag of dependent variable. Implies {cmd:after}.
+
+{phang}
+{opt wx} transform spatial lags of independent variables as defined in {it:varlist}. Implies {cmd:after}.
+
+{phang}
+{opt transform} short for transform(_all).
+
+{phang}
+{opt stand:ardize} short for transform(_all).
 
 {marker DIE}{...}
 {title:Direct, indirect and total Effects}
@@ -432,6 +503,22 @@ flows using the {cmd:id()} option:{p_end}
 
 {col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234)"}
 
+{p 4 4}Use Python (requires Stata 16 or later) to improve speed of calculating the LUD:{p_end}
+
+{col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) python"}
+
+{p 4 4}Transform data by demeaning and standardising it:{p_end}
+
+{col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) transform(_all, by(ID)"}
+
+{p 4 4}or{p_end}
+
+{col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) standardize"}
+
+{p 4 4}Partial out firm and year fixed effects (requires {help reghdfe}):{p_end}
+
+{col 8}{stata "nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) absorb(ID Year)"}
+
 {p 4 4}We can also define two different spatial weight matrices:{p_end}
 
 {col 8}{stata "mata: Wt2 = Wt[selectindex(Wt[.,4]:>2601.996),.]"}
@@ -483,5 +570,11 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {p 4}Web: {browse "https://sites.google.com/view/moradzekhnini/home"}{p_end}
 
 {title:Changelog}
+{p 4 4}{ul:Version 0.13}{p_end}
+{p 8 8}- added options absorb() and transform(){p_end}
+{p 8 8}- bugfixes when using fixed effects{p_end}
+{p 8 8}- Python support for BarryPace trick{p_end}
+{p 4 4}{ul:Version 0.12}{p_end}
+{p 8 8}- Support for Python to calculated LUD{p_end}
 {p 4 4}{ul:Version 0.03 (alpha)}{p_end}
 {p 8 8}- Bugs in sparse matrix multiplication and return if non sparse matrix is used fixed.{p_end}

@@ -1,6 +1,8 @@
 # nwxtregress
 Network Regressions in Stata with unbalanced panel data and time varying network structures or spatial weight matrices.
 
+Current Version: 0.13 (17.01.2023)
+
 __Table of Contents__
 1. [Syntax](#1-syntax)
 2. [Description](#2-description)
@@ -21,7 +23,7 @@ __Table of Contents__
 ```
 nwxtregress depvar  indepvars [if], 
         ivarlag(W1[, sparse timesparse mata id(string)])
-        [mcmcoptions nosparse]
+        [mcmcoptions absorb(varlist, keepsingeltons) transform(transfrom_varlist, transform_options)]
 ```
 
 ### SDM
@@ -30,7 +32,7 @@ nwxtregress depvar  indepvars [if],
 nwxtregress depvar  indepvars [if], 
         ivarlag(W1[, sparse timesparse mata id(string)])
         dvarlag(Ws:varlist[, sparse timesparse mata id(string)]
-        [mcmcoptions nosparse]
+        [mcmcoptions absorb(varlist, keepsingeltons) transform(transfrom_varlist, transform_options)]
 ```
 
 Data has to be ```xtset``` before use. W1 and Ws define the spatial weight matrix, default is ***Sp*** object.
@@ -57,6 +59,7 @@ options | Description
 --- | ---
 **nosparse** | not convert weight matrix internally to a sparse matrix
 **asarray(name)** | change name of array estimation results and info
+**standardize** | standardizes all variables, short for ***transform(_all, by(idvar))***
 
 #### MCMC Options
 
@@ -69,6 +72,18 @@ mcmcoptions | Description
 **usebp** | use BarryPace trick instead of LUD for inverse of (I−ρW).
 **python** | use Python to calculate LUD or Barry Pace trick.
 **seed(#)** | sets the seed
+
+#### Transform Options
+
+transformoptions | Description
+--- | ---
+**transform_varlist** | variables to be transformed. ***_all*** transformes all dependent and independent variables. If not specified, ***cmd:_all*** assumed.
+**by(varname)** | variable defining level of transformation.
+**after** | transform variables after spatial lags are calcuted
+**wy** | transform spatial lag of dependent variable
+**wx** | transform spatial lag of independent variables as defined by ***varlist***
+**nom:ean** | do not demean data
+**nosd** | do not standardize data (standard deviation of 1)
 
 #### Maintenance:
 
@@ -185,6 +200,39 @@ Option | Description
 **version** | display version.
 **update** | update from Github.
 
+## 3.1 High Dimensional Fixed Effects
+
+***nwxtregress*** can remove high dimensional fixed effects using [reghdfe](http://scorreia.com/software/reghdfe/). The fixed effects are partialled out before spatial lags are cacluated. Constant is automatically removed when ```cmd:absorb()``` is used. The syntax is:
+
+``
+asorb(varlist, keepsingeltons)
+``
+
+Option | Description
+ --- | --- 
+varlist | categorical variables that identify the fixed effects to be absorbed. 
+veepsingelton | keep singelton units.
+
+## 3.2 Transform Data
+
+```nwxtregress``` can demean and standardize dependent and independent variables, before or after the calculation of the spatial lags. Spatial lags can be transformed as well. The syntax is:
+
+``
+transform([varlist] [, by(varname)) after nomean nosd wy wx])
+``
+
+Option | Description
+ --- | --- 
+varlist | variables to be transformed. ```_all``` implies all dependent and independent variabkes. If left empty, ```_all``` assumed.
+by(varname) | variable defining transformation. Default is ```by(ID)```, where ID identifies the cross-sections. ```by(_all)``` transforms data across all cross-sections.
+after | transform data after caculation of spatial lags. Default is to transform data first.
+nomean | do not demean data.
+nosd | do not standardize data.
+wy | transform spatial lag of dependent variable. Implies ```after```.
+wx | transform spatial lags of independent variables as defined in ```it:varlist```. Implies ```cmd:after```.
+transform | short for transform(_all).
+standardize | short for transform(_all).
+
 # 4. Postestimation
 
 ## 4.1 Direct, indirect and total effects.
@@ -267,7 +315,7 @@ sample | sample
 
 #### mata arrays
 
- In addition to e() and r() nwxtregress saves informations about the estimation in a mata array.  The contents are the weight matrix in time sparse format, residuals and results from the MCMC.  Storing those saves time for ``estat impact`` and ``predict``.  The name default name of the array is _NWXTREG_OBJECT#, but can be set with the option **asarray()**.  In general it is not recommended to change this setting.
+ In addition to e() and r() nwxtregress saves informations about the estimation in a mata array.  The contents are the weight matrix in time sparse format, residuals and results from the MCMC.  Storing those saves time for ``estat impact`` and ``predict``.  The name default name of the array is ```_NWXTREG_OBJECT#```, but can be set with the option **asarray()**.  In general it is not recommended to change this setting.
 
 
 # 6. Examples
@@ -327,6 +375,30 @@ If we want to estimate an SDM by adding the option ivarlag():
 nwxtregress cap_cons compensation net_surplus , 
 dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  
 seed(1234)
+```
+
+Use Python (requires Stata 16 or later) to improve speed of calculating the LUD:
+
+```
+nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) python
+```
+
+Transform data by demeaning and standardising it:
+
+```
+nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) transform(_all, by(ID)
+```
+
+or
+
+```
+nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) standardize
+```
+
+Partial out firm and year fixed effects (requires reghdfe):
+
+```
+nwxtregress cap_cons compensation net_surplus , dvarlag(Wt,mata timesparse) ivarlag(Wt: compensation,mata timesparse )  seed(1234) absorb(ID Year)
 ```
 
 We can also define two different spatial weight matrices:
@@ -394,3 +466,16 @@ Web: https://www.williamgrieser.com/
 Email: zekhnini@msu.edu
 
 Web: https://sites.google.com/view/moradzekhnini/home
+
+## About:
+This version 0.13 as of 17.01.2023
+
+## Changelog:
+Version 0.13
+- added options absorb() and transform()
+- bugfixes when using fixed effects
+- Python support for BarryPace trick
+Version 0.12
+- Support for Python to calculated LUD
+Version 0.03 (alpha)
+- Bugs in sparse matrix multiplication and return if non sparse matrix is used fixed.

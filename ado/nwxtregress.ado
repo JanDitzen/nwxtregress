@@ -1,8 +1,11 @@
 *! nwxtregress
-*! v. 0.12
-*! 11.12.2022 - see https://janditzen.github.io/nwxtregress/
+*! v. 0.13
+*! 17.01.2023 - see https://janditzen.github.io/nwxtregress/
 /*
 Change Log:
+- 17.01.2023 - added absorb() option to remove high dimensional fixed effects
+	     		 - option FE only 
+	     		 - added option transform()
 - 11.12.2022 - bug in BarryPace trick solved
 - 01.12.2022 - fix if spatial weight matrix was empty and python used
 */
@@ -111,8 +114,11 @@ program define _nwxtreg, eclass
 		BArrypace(numlist)				/// settings for BarryPace Trick, iterations, maxorder default: 50 100
 		usebp							/// use BP instead of LUD
 		/// FE, constant etc.
-		fe 								/// add fixed effects
-		STANDardize						/// standardize data
+		absorb(string)						/// remove high dimensional FE
+		fe 							/// add fixed effects (legacy)
+		oldfe							/// enforce old mata code for FE
+		transform(string)					/// transformation of data (demean, etc.)
+		STANDardize						/// standardize data by ID 		
 		NOCONStant						/// suppress constant
 		/// computational options
 		python 							/// use pyhton for LUD
@@ -121,6 +127,7 @@ program define _nwxtreg, eclass
 		* 								/// ivlag weights
 		]		
 		
+
 		*** Get Array Name
 		GetArrayName `asarray'	
 
@@ -157,123 +164,204 @@ program define _nwxtreg, eclass
 			local trace noi
 		}
 		noi di ""
-		`trace' {
-			
+		preserve 
+			`trace' {
+				*** mark sample
+				tempname touse
+				marksample touse
 
-			*** mark sample
-			tempname touse
-			marksample touse
+				*** get id and t var
+				_xt
+				local tvar_o `r(tvar)'
+				local idvar `r(ivar)'	
 
-			*** get id and t var
-			_xt
-			local tvar_o `r(tvar)'
-			local idvar `r(ivar)'	
+				*** make sure data is sorted
+				issorted `idvar' `tvar_o'
+				
+				*** generate new tvar from 1...T
+				tempvar tvar
+				local tvar `tvar_o'
+				
+				tsunab indepdepvars_names :  `varlist'
+				tsrevar	`varlist'
+				
+				local indepdepvars `r(varlist)'
 
-			*** make sure data is sorted
-			issorted `idvar' `tvar_o'
-			
-			*** generate new tvar from 1...T
-			tempvar tvar
-			local tvar `tvar_o'
-			
-			tsunab indepdepvars :  `varlist'			
-			local spatial =word("`indepdepvars'",1)		
-			
-			**** BP options 
-			if "`usebp'" == "" {
-				local uselud "uselud"
-			}
-			else {
-				local uselud ""
-			}
-
-			*** adjust touse
-			markout `touse' `indepdepvars' `spatial'
-
-			*** process spatial weigth matrices
-			tempname nwxtreg_Warray 
-			mata `nwxtreg_Warray' = asarray_create()
-
-			*** Depvar
-			gettoken 1 2: dvarlag , parse(",") 
-			local w_dep `1'
-			spmat_set `1' , `=subinstr("`2'",",","",.)' varlist(`spatial') arrayname("`nwxtreg_Warray'") isdep
-			
-			local sar = 1
-			local sdmsar = "SAR"
-			
-			*** Indepvar
-			local rest "`options'"
-			while  "`rest'" != "" {
-				tempname wname
-
-				if "`wname'" != "`w_dep'" {
-
-					gettoken cur rest: rest, bind
-
-					local 0 ", `cur'"
-					syntax [anything], ivarlag(string) 
-
-					gettoken 1 2: ivarlag , parse(",") 
-					local 2 = subinstr("`2'",",","",.)
-					gettoken tmp1 tmp2 : 1, parse(":")
-					local tmp2 = subinstr("`tmp2'",":","",.)
-					spmat_set `tmp1' , `2' varlist(`tmp2') arrayname("`nwxtreg_Warray'") wname(`wname')
+				local spatial =word("`indepdepvars'",1)		
+				local spatial_name = word("`indepdepvars_names'",1)
+				
+				*** save options
+				local rest "`options'"
+				
+				**** BP options 
+				if "`usebp'" == "" {
+					local uselud "uselud"
 				}
 				else {
-					mata asarray(`nwxtreg_Warray',"Wdep_indep",1)	
+					local uselud ""
 				}
-				local sar = 0
-				local sdmindic sdm
-			}
-			
-			*** Use sparse matrices internally
-			if "`nosparse'" == "" {
-				local nosparse = 1
-			}
-			else {
-				local nosparse = 0
-			}
 
+				*** transform options
+				if "`standardize'" != "" local transform "`indepdepvars' , by(`idvar') "
+				local standardize ""
+				
+				tempname transform_ovar transform_varindic transform_opt
+				mata `transform_opt' = J(1,5,0)
+				mata `transform_varindic' = J(1,0,.)
+				mata `transform_ovar' = ""
 
-			*** barry pace options
-			if "`uselud'" != "" {
-				local bp1 = 0
-				local bp2 = 0
-			}
-			else {
-				if "`barrypace'" != "" {
-					tokenize `barrypace'
-					local bp1 = `1'
-					local bp2 = `2'
+				if "`transform'" != "" {
+					local 0 `transform'
+					syntax [varlist(ts)] , [by(varname max=1) after NOMean NOSD wy wx ]
+					
+					if "`varlist'" == "" local varlist "`indepdepvars_names'"
+					if "`varlist'" == "_all" local varlist "`indepdepvars_names'"
+					if "`by'" == "" local by "`idvar'"
+					if "`by'" == "_all" local by "`touse'"
+					
+					tsunab varlist: `varlist'
+					
+					if "`after'" == "" & "`wy'`wx'" != "" {
+						noi disp as smcl "Option {cmd:wy} or {cmd:wx} implies option {cmd:after}."
+						local after after
+					}
+					mata `transform_opt' = ("`after'"!="","`nomean'"=="","`nosd'"=="","`wy'"!="","`wx'"!="")
+					mata `transform_ovar' = "`by'"
+					///mata `transform_varindic' = J(1,cols(tokens("`indepdepvars_names'")),0)
+					
+					local i = 1
+					foreach var in `varlist' {
+						mata `transform_varindic' = `transform_varindic', selectindex("`var'":==tokens("`indepdepvars_names'"))
+						local ++i
+					}
+
+					/// of demeaned, no constant needed
+					if "`nomean'" == "" local noconstant noconstant
+
+				}
+				
+				*** adjust touse
+				markout `touse' `indepdepvars' `spatial'
+
+				if "`fe'" != "" & "`absorb'" == "" {
+					local absorb `idvar'
+				}
+				local fe ""
+
+				if "`oldfe'" != "" local absorb ""
+
+				/// save means
+				tempname DataMeans
+				if "`noconstant'" == "" & "`absorb'" != "" {	
+					tabstat `indepdepvars' if `touse' , s(mean) save
+					mata `DataMeans' = st_matrix("r(StatTotal)")
+					
 				}
 				else {
-					local bp1 = 50
-					local bp2 = 100
+					mata `DataMeans' = .
 				}
+
+				*** remove fixed and time fixed effects using reghdfe
+				if "`absorb'" != "" {
+					/* if fixed effects are used, constant is partialled out automatically. not possible to 
+					recalculate contstant from b0 = ym - b * xm - rW ym - g Wx xm because in mata  Wym and Wx xm are not know */
+					
+					local noconstant noconstant
+					gettoken 1 2: absorb, parse(",")
+					gettoken 3 4: 2					
+					nwxtreg_absorb_prog `1' , `4' touse(`touse') vars(`indepdepvars') 					
+					local touse_indepdepvars `r(absorb_vars)'
+					local touse_spatial =word("`indepdepvars'",1)
+
+	            *** adjust touse
+					markout `touse' `indepdepvars' `spatial'
+									
+				}
+				*** process spatial weigth matrices
+				tempname nwxtreg_Warray 
+				mata `nwxtreg_Warray' = asarray_create()
+
+				*** Depvar
+				gettoken 1 2: dvarlag , parse(",") 
+				local w_dep `1'
+				spmat_set `1' , `=subinstr("`2'",",","",.)' varlist(`spatial') arrayname("`nwxtreg_Warray'") isdep
+				
+				local sar = 1
+				local sdmsar = "SAR"
+				
+				*** Indepvar						
+				while  "`rest'" != "" {
+					tempname wname
+
+					if "`wname'" != "`w_dep'" {
+
+						gettoken cur rest: rest, bind
+
+						local 0 ", `cur'"
+						syntax [anything], ivarlag(string) 
+
+						gettoken 1 2: ivarlag , parse(",") 
+						local 2 = subinstr("`2'",",","",.)
+						gettoken tmp1 tmp2 : 1, parse(":")
+						local tmp2 = subinstr("`tmp2'",":","",.)
+						spmat_set `tmp1' , `2' varlist(`tmp2') arrayname("`nwxtreg_Warray'") wname(`wname')
+					}
+					else {
+						mata asarray(`nwxtreg_Warray',"Wdep_indep",1)	
+					}
+					local sar = 0
+					local sdmindic sdm
+				}
+				
+				*** Use sparse matrices internally
+				if "`nosparse'" == "" {
+					local nosparse = 1
+				}
+				else {
+					local nosparse = 0
+				}
+
+
+				*** barry pace options
+				if "`uselud'" != "" {
+					local bp1 = 0
+					local bp2 = 0
+				}
+				else {
+					if "`barrypace'" != "" {
+						tokenize `barrypace'
+						local bp1 = `1'
+						local bp2 = `2'
+					}
+					else {
+						local bp1 = 50
+						local bp2 = 100
+					}
+				}
+				
+				*** clear ereturn
+				tempname FEOpt
+					
+				mata `FEOpt' = ("`oldfe'"!=""),("`noconstant'"!=""),("`absorb'"!="")
+				mata `asarray' = nwxtreg_estimate("`indepdepvars'","`indepdepvars_names'","`touse'","`idvar' `tvar'",`DataMeans',`sar',`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'),`FEOpt',`transform_opt',`transform_varindic',`transform_ovar',("`python'"!=""),("`trace'"!=""))
+				
+				
 			}
 			
-			*** clear ereturn
-			tempname DataTrans
-			mata `DataTrans' = ("`fe'"!=""),("`noconstant'"!=""),("`standardize'"!="")
-			mata `asarray' = nwxtreg_estimate("`indepdepvars'","`touse'","`idvar' `tvar'",`sar',`nwxtreg_Warray',`nosparse',`gridlength',`draws',`nomit',(`bp1',`bp2'),`DataTrans',("`python'"!=""),("`trace'"!=""))
+			output_table_main `asarray', varnames("`indepdepvars_names'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial `sdmsar'") warray("`nwxtreg_Warray'") `sdmindic'
+
+			ereturn local estat_cmd "nwxtregress_estat"
+			ereturn local predict "nwxtregress_predict"
+
+			ereturn hidden local output_mat "`asarray'"
+			ereturn hidden scalar nomit = `nomit'
+			tempname sparse
+			mata st_numscalar("`sparse'",asarray(asarray(`nwxtreg_Warray',"Wy"),"sparse"))
+			ereturn hidden scalar issparse = `sparse'
 			
-		}
-		
-		output_table_main `asarray', varnames("`indepdepvars'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial `sdmsar'") warray("`nwxtreg_Warray'") `sdmindic'
-
-		ereturn local estat_cmd "nwxtregress_estat"
-		ereturn local predict "nwxtregress_predict"
-
-		ereturn hidden local output_mat "`asarray'"
-		ereturn hidden scalar nomit = `nomit'
-		tempname sparse
-		mata st_numscalar("`sparse'",asarray(asarray(`nwxtreg_Warray',"Wy"),"sparse"))
-		ereturn hidden scalar issparse = `sparse'
-		
-		ereturn local cmd "nwxtregress"
-		ereturn hidden local type "`sdmsar'"
-
+			ereturn local cmd "nwxtregress"
+			ereturn hidden local type "`sdmsar'"
+		restore
 		mata mata drop `nwxtreg_Warray'
 		cap mata mata drop  nwxtreg_* __*
 		
@@ -616,7 +704,7 @@ program define output_table_main, eclass
 	mata st_numscalar("e(r2_a)",(asarray(`matname',"r2")[2]))
 	mata st_numscalar("e(MCdraws)",(asarray(`matname',"MCMC")[1]))
 
-	mata st_numscalar("e(HasCons)",(asarray(`matname',"DataTrans")[2]:==0),"hidden")
+	mata st_numscalar("e(HasCons)",(asarray(`matname',"FEOpt")[2]:==0),"hidden")
 
 	ereturn local idvar "`idvar'"
 	ereturn local tvar "`tvar'"
@@ -749,6 +837,51 @@ program define output_table
 	di as result _column(`col') %9.7g `lower' _continue
 	local col = `col' + 11
 	di as result _column(`col') %9.7g `upper'
+end
+
+// -------------------------------------------------------------------------------------------------
+// absorb program
+// -------------------------------------------------------------------------------------------------
+cap program drop nwxtreg_absorb_prog
+program define nwxtreg_absorb_prog, rclass
+	syntax anything(name=absorb) , [KEEPsingeltons TRACEhdfeopt] touse(string) vars(string) 
+noi disp "absorb: `absorb'; touse `touse'"
+noi sum `vars'
+	local singeltons = 1
+	if "`keepsingeltons'" == "" local singeltons = 0
+
+	local tracehdfe = -1
+	if "`tracehdfeopt'" != "" local tracehdfe = 1
+
+	*** tempnames for mata objects
+	tempname nwxtreg_absorb nwxtreg_absorb_partial
+
+	cap which reghdfe
+	loc rc = _rc
+	cap which ftools
+	if _rc | `rc' {                			
+		di as err "option {it: absorb()} requires {help:reghdfe} and {help ftools}:"
+		di as err "  click {stata ssc install reghdfe} to install from SSC"
+		di as err "  click {stata ssc install ftools} to install from SSC"
+		exit 199
+	}
+	mata abc = `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
+	cap mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
+	if _rc {
+		cap reghdfe, check
+		cap mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
+		if _rc {
+			di as err "{bf:reghdfe} Mata library not found."
+			exit 199
+		}
+	}
+	
+	mata: `nwxtreg_absorb_partial' = `nwxtreg_absorb'.partial_out("`vars'")
+	mata: st_store(`nwxtreg_absorb'.sample, tokens("`vars'"), `nwxtreg_absorb_partial')
+
+	mata mata drop `nwxtreg_absorb_partial' `nwxtreg_absorb'
+
+	return local absorb_vars "`vars'"
 end
 
 // -------------------------------------------------------------------------------------------------
