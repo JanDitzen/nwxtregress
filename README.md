@@ -1,9 +1,7 @@
 # nwxtregress
 Network Regressions in Stata with unbalanced panel data and time varying network structures or spatial weight matrices.
 
-Current Version: 0.13 (17.01.2023)
-
-[nwxtregress](https://github.com/janditzen/nwxtregress) | ![version](https://img.shields.io/github/v/release/janditzen/nwxtregress) | ![release](https://img.shields.io/github/release-date/janditzen/nwxtregress) | |
+![version](https://img.shields.io/github/v/release/janditzen/nwxtregress)  ![release](https://img.shields.io/github/release-date/janditzen/nwxtregress) 
 
 __Table of Contents__
 1. [Syntax](#1-syntax)
