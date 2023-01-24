@@ -468,9 +468,11 @@ Email: zekhnini@msu.edu
 Web: https://sites.google.com/view/moradzekhnini/home
 
 ## About:
-This version 0.13 as of 17.01.2023
+This version 0.131 as of 24.01.2023
 
 ## Changelog:
+Version 0.131
+- moved python code to nwxtregress.py
 Version 0.13
 - added options absorb() and transform()
 - bugfixes when using fixed effects

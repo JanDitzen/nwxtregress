@@ -1,11 +1,12 @@
 *! nwxtregress
-*! v. 0.13
+*! v. 0.131
 *! 17.01.2023 - see https://janditzen.github.io/nwxtregress/
 /*
 Change Log:
+- 24.01.2023 - moved python code to seperate py file
 - 17.01.2023 - added absorb() option to remove high dimensional fixed effects
-	     		 - option FE only 
-	     		 - added option transform()
+	     - option FE only 
+	     - added option transform()
 - 11.12.2022 - bug in BarryPace trick solved
 - 01.12.2022 - fix if spatial weight matrix was empty and python used
 */
@@ -60,12 +61,15 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 		}
 
 		if "`version'" != "" {
-			local version 0.1
-			noi disp "This is version `version' - xx.xx.2022"
+			local version 0.131
+			noi disp "This is version `version' - 24.01.2023"
 			nwxtregress , version
 			return local version "`version'"
 			exit
 		}
+
+
+
 
 		**** Main Program
 
@@ -133,7 +137,19 @@ program define _nwxtreg, eclass
 
 		*** Check if option python is used that python is installed
 		if `c(stata_version)' >= 16 {
-			if "`python'" != "" nwxtreg_check_python
+			if "`python'" != "" {
+				nwxtreg_check_python
+
+				qui findfile nwxtregress.py
+				cap python script "`r(fn)'", global
+				if _rc != 0 {
+					noi disp "Error loading Python Script for nwxtregress."
+					error 199
+				}
+				python: from nwxtregress import *
+				
+
+			}
 		}
 		else {
 			if "`python'" != "" {
@@ -303,7 +319,7 @@ program define _nwxtreg, eclass
 						gettoken 1 2: ivarlag , parse(",") 
 						local 2 = subinstr("`2'",",","",.)
 						gettoken tmp1 tmp2 : 1, parse(":")
-						local tmp2 = subinstr("`tmp2'",":","",.)
+						local tmp2 = subinstr("`tmp2'",":","",.)				
 						spmat_set `tmp1' , `2' varlist(`tmp2') arrayname("`nwxtreg_Warray'") wname(`wname')
 					}
 					else {
@@ -921,97 +937,4 @@ end
 
 
 
-// -------------------------------------------------------------------------------------------------
-// Python programs
-// -------------------------------------------------------------------------------------------------
 
-if c(version) >= 16 {
-
-python:
-from scipy.sparse import csc_matrix, identity, linalg as sla
-from scipy.linalg import lu, logm
-
-
-from sfi import Mata
-
-import numpy as np
-
-
-def nwpython_lud(data_n,n_n,rgrid_n,output_n):
-	
-	dta = np.array(Mata.get(data_n))	
-
-	rows = dta[:,0]
-	cols = dta[:,1]
-	dta = dta[:,2]
-	rgrid = np.array(Mata.get(rgrid_n))	
-
-	n = np.array(Mata.get(n_n),dtype=np.intc)
-		
-	rows = rows.flatten()
-	cols = cols.flatten()
-	dta = dta.flatten()
-	n = n.flatten()	
-	rgrid = rgrid.flatten()
-
-	results = np.zeros((len(rgrid),1))
-	
-	for i in range(len(rgrid)):
-		ri = rgrid[i]
-
-		dta_x = - np.multiply(dta,ri)
-
-		data_sp = csc_matrix((dta_x,(rows,cols)),shape = (n))	
-
-		data_sp.setdiag(1,k=0)		
-		lud = sla.spilu(data_sp)
-		Ai = lud.L+lud.U-identity(n[0])	
-		detmi = np.array(Ai.diagonal())
-		detmi[detmi<=0] = 1
-		detmil = np.sum(np.log(detmi.data))
-		results[i,:] = detmil	
-
-	Mata.store(output_n,results)	
-
-
-def nwpython_bp(data_n,vals_n,max_n,sdm_n,output_n):
-
-	dta = np.array(Mata.get(data_n))
-	vals = np.array(Mata.get(vals_n))
-	max = np.array(Mata.get(max_n),dtype=np.intc)	
-	sdm = np.array(Mata.get(sdm_n),dtype=np.intc)
-
-	rows = dta[:,0]
-	cols = dta[:,1]
-	dta = dta[:,2]
-	
-	rows = rows.flatten()
-	cols = cols.flatten()
-	dta = dta.flatten()
-	max = max.flatten()
-	
-	len = vals.shape
-	gridl = len[1]
-	nobs = len[0]
-
-	sparse = csc_matrix((dta,(rows,cols)),shape = (nobs,nobs))
-
-	wjjju = vals
-
-	tracew = np.zeros((max[0],1))
-
-	for i in range(0,max[0]):
-		wjjju = sparse.dot(wjjju)
-		tracew[i] = np.mean(np.multiply(np.array(vals),np.array(wjjju)))
-
-	
-	if (sdm == 0):
-		tracew[1] = np.sum(((sparse.T).multiply(sparse)))/nobs
-
-	Mata.store(output_n,tracew)
-
-end
-
-
-
-}

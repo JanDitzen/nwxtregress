@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.13 - 17. January 2023}
+{hi:help nwxtregress}{right: v. 0.131 - 24. January 2023}
 
 {hline}
 {title:Title}
@@ -570,6 +570,8 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {p 4}Web: {browse "https://sites.google.com/view/moradzekhnini/home"}{p_end}
 
 {title:Changelog}
+{p 4 4}{ul:Version 0.131}{p_end}
+{p 8 8}- moved python code to nwxtregress.py{p_end}
 {p 4 4}{ul:Version 0.13}{p_end}
 {p 8 8}- added options absorb() and transform(){p_end}
 {p 8 8}- bugfixes when using fixed effects{p_end}
