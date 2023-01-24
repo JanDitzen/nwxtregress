@@ -1,18 +1,21 @@
 capture program drop nwxtregress_estat
 program define nwxtregress_estat, rclass
-
+	syntax anything , [eadd *]
 	gettoken subcmd rest: 0 
 	if regexm("`subcmd'","impact*")==1 {
-		`0'
+		impact , `options'
 	}
 	else {
 		noi disp "no cmd"
 	}
 	return add
+	noi return list
+	
+
 end
 
 program define impact, rclass
-	syntax [anything] , [trace seed(string) array(string) python]
+	syntax [anything] , [trace seed(string) array(string) python  ]
 		if "`anything'" == "" {
 			local varlist "`e(indepvar)'"
 		}
@@ -123,8 +126,7 @@ program define impact, rclass
 		mata asarray_remove(`array',"indirectVcov")
 		mata asarray_remove(`array',"totalVcov")
 
-		return clear
-		
+		return clear	
 
 		return matrix b_direct = `b_direct'
 		return matrix b_indirect = `b_indirect'
@@ -134,8 +136,8 @@ program define impact, rclass
 		return matrix V_indirect = `V_indirect'
 		return matrix V_total = `V_total'
 
-		*return add
 end
+
 
 
 // -------------------------------------------------------------------------------------------------

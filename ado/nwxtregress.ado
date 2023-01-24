@@ -120,6 +120,8 @@ program define _nwxtreg, eclass
 		python 							/// use pyhton for LUD
 		/// output
 		asarray(string)					/// name of array
+		impact 							/// calculate direct indirect effects and add them to b and V
+		impactseed(string)						/// seed for direct and indirect effects
 		* 								/// ivlag weights
 		]		
 		
@@ -372,6 +374,71 @@ program define _nwxtreg, eclass
 		restore
 		mata mata drop `nwxtreg_Warray'
 		cap mata mata drop  nwxtreg_* __*
+
+		if "`impact'" != "" {
+			noi di ""
+			if "`impactseed'"!= "" local impactseed seed(`impactseed')
+			
+			estat impact, `python' `impactseed'
+		
+			tempname b V b_total V_total b_direct V_direct b_indirect V_indirect
+			
+			matrix `b' = e(b)
+			matrix `V' = e(V)
+
+			matrix `b_total' = r(b_total)
+			matrix `V_total' = r(V_total)
+			
+			matrix `b_direct' = r(b_direct)
+			matrix `V_direct' = r(V_direct)
+			
+			matrix `b_indirect' = r(b_indirect)
+			matrix `V_indirect' = r(V_indirect)
+
+			matrix coleq `b_total' = total
+			matrix coleq `V_total' = total
+			matrix roweq `V_total' = total
+
+			matrix coleq `b_direct' = direct
+			matrix coleq `V_direct' = direct
+			matrix roweq `V_direct' = direct
+
+			matrix coleq `b_indirect' = indirect
+			matrix coleq `V_indirect' = indirect
+			matrix roweq `V_indirect' = indirect
+
+
+			matrix `b' = `b', `b_total', `b_direct',`b_indirect'
+			local colsV: colsof `V'
+			local rowsV: rowsof `V'
+			local colsVt: colsof `V_total'
+			local rowsVt: rowsof `V_total'
+
+			matrix `V' = (`V' , J(`rowsV',`=3*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) , `V_total' , J(`colsVt',`=2*`colsVt'',0)) \( J(`rowsVt',`colsV',0) ,J(`rowsVt',`colsVt',0), `V_direct', J(`rowsVt',`=1*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) ,J(`rowsVt',`=2*`colsVt'',0), `V_indirect')
+
+			matrix list `b'
+
+			local colseq: coleq `b'
+			local colsn: colnames `b'
+
+			matrix colnames `V' = `colsn'
+			matrix rownames `V' = `colsn'
+
+			matrix coleq `V' = `colseq'
+			matrix roweq `V' = `colseq'
+			
+			matrix list `V'
+
+			ereturn repost b=`b' V=`V' , resize
+
+				*return matrix b_all = `b'
+				*return matrix V_all = `V'
+
+			
+				*estadd matrix b = `b'
+				*estadd matrix V = `V'
+		
+	}
 		
 end
 
@@ -898,8 +965,8 @@ end
 cap program drop nwxtreg_check_python
 program define nwxtreg_check_python
 	qui {
-		python query
-		if r(initialized) == 1 {
+		cap python query
+		if _rc == 0 {
 			cap python which numpy
 			local HasNumpy = _rc	
 
@@ -916,11 +983,11 @@ program define nwxtreg_check_python
 				if `HasSfi' != 0 noi disp "  sfi"
 				noi disp "Please install them before using the option {it:python}."
 			}
-			exit
+		*	exit
 		}
 		else {
-			noi disp as error "Python not initialized."
-			exit
+			noi disp as error "Error loading Python."
+			error 199
 		}
 	}	
 

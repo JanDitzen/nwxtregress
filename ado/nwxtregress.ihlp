@@ -62,6 +62,9 @@ using {help net install}.{p_end}
 {synopt:{opt nosparse}}not convert weight matrix internally to a sparse matrix{p_end}
 {synopt:{opt asarray(name)}}change name of array with estimation results and info{p_end}
 {synopt:{opt stand:ardize}}standardizes all variables, short for {opt transform(_all, by(idvar))}{p_end}
+{synopt:{opt impact}}caculate total, direct and indirect effects and add them to {cmd:e(b)} and {cmd:e(V)}, 
+see {help nwxtregress##DIE: calculation of total, direct and indirect effects}.{p_end}
+{synopt:{opt impactseed(string)}}Set seed for impact.{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -310,6 +313,13 @@ the array already existed.{p_end}
 {opt python} use {help python:Python} to calculate the LU Decomposition or BarryPace trick. 
 Requires installation of Stata 16, Python, scipy, sfi and numpy.
 Using Python to calculate the LUD is faster by a factor 4-10.
+
+{phang}
+{opt impact} caculate total, direct and indirect effects and add them to {cmd:e(b)} and {cmd:e(V)}, 
+see {help nwxtregress##DIE:calculation of total, direct and indirect effects}.
+
+{phang}
+{opt impactseed(string)} set seed for impact, see {help nwxtregress##DIE:calculation of total, direct and indirect effects}.
 
 {phang}
 {opt seed(#)} sets the {help seed}.
@@ -572,6 +582,7 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {title:Changelog}
 {p 4 4}{ul:Version 0.131}{p_end}
 {p 8 8}- moved python code to nwxtregress.py{p_end}
+{p 8 8}- added option impact{p_end}
 {p 4 4}{ul:Version 0.13}{p_end}
 {p 8 8}- added options absorb() and transform(){p_end}
 {p 8 8}- bugfixes when using fixed effects{p_end}

@@ -60,6 +60,8 @@ options | Description
 **nosparse** | not convert weight matrix internally to a sparse matrix
 **asarray(name)** | change name of array estimation results and info
 **standardize** | standardizes all variables, short for ***transform(_all, by(idvar))***
+**impact** |  caculate total, direct and indirect effects and add them to e(b) and e(V). See [Postestimation (Predict, Direct, indirect and total effects)](#4-postestimation).
+**impactseed(seed)** | set seed for impact.
 
 #### MCMC Options
 
@@ -196,6 +198,8 @@ Option | Description
 **barrypace(numlist)** | settings for BarryPace Trick. Order is iterations, maxorder. Default is 50 and 100.
 **usebp** | use BarryPace trick instead of LUD for inverse of (I−ρW).
 **python** | use Python to calculate the LU Decomposition or BarryPace trick.  Requires installation of Python, scipy, sfi and numpy. Using Python to calculate the LUD is faster by a factor 4-10.
+**impact** |  caculate total, direct and indirect effects and add them to e(b) and e(V). See [Postestimation (Predict, Direct, indirect and total effects)](#4-postestimation).
+**impactseed(seed)** | set seed for impact.
 **seed(#)** | sets the seed.
 **version** | display version.
 **update** | update from Github.
@@ -473,6 +477,7 @@ This version 0.131 as of 24.01.2023
 ## Changelog:
 Version 0.131
 - moved python code to nwxtregress.py
+- added option impact
 
 Version 0.13
 - added options absorb() and transform()
