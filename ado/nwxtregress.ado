@@ -18,7 +18,7 @@ mata programs are contained in lnwxtregress
 
 capture program drop nwxtregress
 program define nwxtregress, eclass
-syntax varlist(ts min=2) [if] 	, 	[	///
+syntax [varlist(ts min=2)] [if] 	, 	[	///
 		/// spatial weight matrix settings
 		dvarlag(string)					/// name of spatial weights matrix for dependent var
 		seed(string)					/// set seed	
@@ -32,7 +32,7 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 
 		if "`update'" != "" {
 			qui nwxtregress, version
-			local v_installed "`r(version)'"	
+			local v_installed "`e(version)'"	
 			cap net uninstall nwxtregress
 			if _rc == 0 {
 				noi disp "Version `v_installed' removed."
@@ -52,7 +52,7 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 			if _rc == 0 {
 				noi disp " Update successfull."
 				qui nwxtregress, version
-				noi disp "New version is `r(version)'"
+				noi disp "New version is `e(version)'"
 			}
 			else {
 				noi disp "Update not successfull!"
@@ -63,22 +63,14 @@ syntax varlist(ts min=2) [if] 	, 	[	///
 		if "`version'" != "" {
 			local version 0.131
 			noi disp "This is version `version' - 24.01.2023"
-			nwxtregress , version
-			return local version "`version'"
+			ereturn clear			
+			ereturn local version "`version'"
 			exit
 		}
 
-
-
-
 		**** Main Program
-
-		*noi disp as text ""
-		*noi disp as error "This is an alpha version! Results may change.", _c
 		noi disp as text ""
 
-		*** necessary checks
-		* moremata
 		*** check that moremata is installed
 		qui{
 			cap findfile moremata.hlp
