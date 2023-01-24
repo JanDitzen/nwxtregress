@@ -416,7 +416,7 @@ program define _nwxtreg, eclass
 
 			matrix `V' = (`V' , J(`rowsV',`=3*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) , `V_total' , J(`colsVt',`=2*`colsVt'',0)) \( J(`rowsVt',`colsV',0) ,J(`rowsVt',`colsVt',0), `V_direct', J(`rowsVt',`=1*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) ,J(`rowsVt',`=2*`colsVt'',0), `V_indirect')
 
-			matrix list `b'
+			
 
 			local colseq: coleq `b'
 			local colsn: colnames `b'
@@ -426,8 +426,8 @@ program define _nwxtreg, eclass
 
 			matrix coleq `V' = `colseq'
 			matrix roweq `V' = `colseq'
+
 			
-			matrix list `V'
 
 			ereturn repost b=`b' V=`V' , resize
 
