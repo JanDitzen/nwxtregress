@@ -473,11 +473,14 @@ This version 0.131 as of 24.01.2023
 ## Changelog:
 Version 0.131
 - moved python code to nwxtregress.py
+
 Version 0.13
 - added options absorb() and transform()
 - bugfixes when using fixed effects
 - Python support for BarryPace trick
+
 Version 0.12
 - Support for Python to calculated LUD
+
 Version 0.03 (alpha)
 - Bugs in sparse matrix multiplication and return if non sparse matrix is used fixed.
