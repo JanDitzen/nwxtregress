@@ -475,6 +475,9 @@ Web: https://sites.google.com/view/moradzekhnini/home
 This version 0.131 as of 24.01.2023
 
 ## Changelog:
+Version 0.132
+- bug when absorb() used fixed, sometimes variables were not updated correctly.
+
 Version 0.131
 - moved python code to nwxtregress.py
 - added option impact

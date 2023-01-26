@@ -1,8 +1,9 @@
 *! nwxtregress
-*! v. 0.131
-*! 17.01.2023 - see https://janditzen.github.io/nwxtregress/
+*! v. 0.132
+*! 25.01.2023 - see https://janditzen.github.io/nwxtregress/
 /*
 Change Log:
+- 25.01.2023 - fixed bug in st_store() when using absorb() option
 - 24.01.2023 - moved python code to seperate py file
 - 17.01.2023 - added absorb() option to remove high dimensional fixed effects
 	     - option FE only 
@@ -29,6 +30,7 @@ syntax [varlist(ts min=2)] [if] 	, 	[	///
 		] 
 		
 		version 14.2
+		///version 17
 
 		if "`update'" != "" {
 			qui nwxtregress, version
@@ -275,7 +277,7 @@ program define _nwxtreg, eclass
 				if "`absorb'" != "" {
 					/* if fixed effects are used, constant is partialled out automatically. not possible to 
 					recalculate contstant from b0 = ym - b * xm - rW ym - g Wx xm because in mata  Wym and Wx xm are not know */
-					
+
 					local noconstant noconstant
 					gettoken 1 2: absorb, parse(",")
 					gettoken 3 4: 2					
@@ -283,7 +285,7 @@ program define _nwxtreg, eclass
 					local touse_indepdepvars `r(absorb_vars)'
 					local touse_spatial =word("`indepdepvars'",1)
 
-	            *** adjust touse
+	            			*** adjust touse
 					markout `touse' `indepdepvars' `spatial'
 									
 				}
@@ -414,9 +416,7 @@ program define _nwxtreg, eclass
 			local colsVt: colsof `V_total'
 			local rowsVt: rowsof `V_total'
 
-			matrix `V' = (`V' , J(`rowsV',`=3*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) , `V_total' , J(`colsVt',`=2*`colsVt'',0)) \( J(`rowsVt',`colsV',0) ,J(`rowsVt',`colsVt',0), `V_direct', J(`rowsVt',`=1*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) ,J(`rowsVt',`=2*`colsVt'',0), `V_indirect')
-
-			
+			matrix `V' = (`V' , J(`rowsV',`=3*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) , `V_total' , J(`colsVt',`=2*`colsVt'',0)) \( J(`rowsVt',`colsV',0) ,J(`rowsVt',`colsVt',0), `V_direct', J(`rowsVt',`=1*`colsVt'',0)) \ (J(`rowsVt',`colsV',0) ,J(`rowsVt',`=2*`colsVt'',0), `V_indirect')			
 
 			local colseq: coleq `b'
 			local colsn: colnames `b'
@@ -425,19 +425,9 @@ program define _nwxtreg, eclass
 			matrix rownames `V' = `colsn'
 
 			matrix coleq `V' = `colseq'
-			matrix roweq `V' = `colseq'
+			matrix roweq `V' = `colseq'			
 
-			
-
-			ereturn repost b=`b' V=`V' , resize
-
-				*return matrix b_all = `b'
-				*return matrix V_all = `V'
-
-			
-				*estadd matrix b = `b'
-				*estadd matrix V = `V'
-		
+			ereturn repost b=`b' V=`V' , resize		
 	}
 		
 end
@@ -920,13 +910,14 @@ end
 cap program drop nwxtreg_absorb_prog
 program define nwxtreg_absorb_prog, rclass
 	syntax anything(name=absorb) , [KEEPsingeltons TRACEhdfeopt] touse(string) vars(string) 
-noi disp "absorb: `absorb'; touse `touse'"
-noi sum `vars'
-	local singeltons = 1
-	if "`keepsingeltons'" == "" local singeltons = 0
+
+	local singeltons = 0
+	if "`keepsingeltons'" == "" local singeltons = 1
 
 	local tracehdfe = -1
 	if "`tracehdfeopt'" != "" local tracehdfe = 1
+
+	if "`tracehdfeopt'" != "" local noii noi
 
 	*** tempnames for mata objects
 	tempname nwxtreg_absorb nwxtreg_absorb_partial
@@ -940,23 +931,23 @@ noi sum `vars'
 		di as err "  click {stata ssc install ftools} to install from SSC"
 		exit 199
 	}
-	mata abc = `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
-	cap mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
+	noi disp "absorb: `absorb' -- `singeltons'"
+	cap `noii' mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
 	if _rc {
 		cap reghdfe, check
 		cap mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
 		if _rc {
-			di as err "{bf:reghdfe} Mata library not found."
+			di as err "{bf:reghdfe} Mata library not found or error in {cmd:reghdfe}."
 			exit 199
 		}
 	}
+	mata: `nwxtreg_absorb_partial' = `nwxtreg_absorb'.partial_out("`vars' ")	
+	mata st_local("var_partial",invtokens(st_tempname(cols(tokens("`vars'")))))	
+	mata st_store(`nwxtreg_absorb'.sample, st_addvar("double",tokens("`var_partial'")),"`touse'", `nwxtreg_absorb_partial')
 	
-	mata: `nwxtreg_absorb_partial' = `nwxtreg_absorb'.partial_out("`vars'")
-	mata: st_store(`nwxtreg_absorb'.sample, tokens("`vars'"), `nwxtreg_absorb_partial')
-
 	mata mata drop `nwxtreg_absorb_partial' `nwxtreg_absorb'
 
-	return local absorb_vars "`vars'"
+	return local absorb_vars "`var_partial'"
 end
 
 // -------------------------------------------------------------------------------------------------
