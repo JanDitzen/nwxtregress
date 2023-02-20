@@ -1,10 +1,16 @@
 *! nwxtregress
-*! v. 0.132
-*! 25.01.2023 - see https://janditzen.github.io/nwxtregress/
+*! v. 0.2
+*! 16.02.2023 - see https://janditzen.github.io/nwxtregress/
 /*
 Change Log:
+V 0.2
+- 20.02.2023 - fixed bug in absorb() option
+- 16.02.2023 - fixed bug when using non sparse weight matrices and estat
+V 0.132
 - 25.01.2023 - fixed bug in st_store() when using absorb() option
+V 0.131
 - 24.01.2023 - moved python code to seperate py file
+V 0.13
 - 17.01.2023 - added absorb() option to remove high dimensional fixed effects
 	     - option FE only 
 	     - added option transform()
@@ -12,10 +18,7 @@ Change Log:
 - 01.12.2022 - fix if spatial weight matrix was empty and python used
 */
 
-/*
-This file contains all Stata programs.
-mata programs are contained in lnwxtregress
-*/
+
 
 capture program drop nwxtregress
 program define nwxtregress, eclass
@@ -63,8 +66,8 @@ syntax [varlist(ts min=2)] [if] 	, 	[	///
 		}
 
 		if "`version'" != "" {
-			local version 0.131
-			noi disp "This is version `version' - 24.01.2023"
+			local version 0.2
+			noi disp "This is version `version' - 20.02.2023"
 			ereturn clear			
 			ereturn local version "`version'"
 			exit
@@ -281,9 +284,10 @@ program define _nwxtreg, eclass
 					local noconstant noconstant
 					gettoken 1 2: absorb, parse(",")
 					gettoken 3 4: 2					
-					nwxtreg_absorb_prog `1' , `4' touse(`touse') vars(`indepdepvars') 					
-					local touse_indepdepvars `r(absorb_vars)'
-					local touse_spatial =word("`indepdepvars'",1)
+					`trace' nwxtreg_absorb_prog `1' , `4' touse(`touse') vars(`indepdepvars') 
+
+					local indepdepvars `r(absorb_vars)'
+					local spatial =word("`indepdepvars'",1)
 
 	            			*** adjust touse
 					markout `touse' `indepdepvars' `spatial'
@@ -909,7 +913,7 @@ end
 // -------------------------------------------------------------------------------------------------
 cap program drop nwxtreg_absorb_prog
 program define nwxtreg_absorb_prog, rclass
-	syntax anything(name=absorb) , [KEEPsingeltons TRACEhdfeopt] touse(string) vars(string) 
+	syntax anything(name=absorb) , [KEEPsingeltons TRACEhdfeopt partialonly] touse(string) vars(string) 
 
 	local singeltons = 0
 	if "`keepsingeltons'" == "" local singeltons = 1
@@ -931,7 +935,7 @@ program define nwxtreg_absorb_prog, rclass
 		di as err "  click {stata ssc install ftools} to install from SSC"
 		exit 199
 	}
-	noi disp "absorb: `absorb' -- `singeltons'"
+	*noi disp "absorb: `absorb' -- `singeltons'"
 	cap `noii' mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
 	if _rc {
 		cap reghdfe, check
@@ -941,12 +945,24 @@ program define nwxtreg_absorb_prog, rclass
 			exit 199
 		}
 	}
-	mata: `nwxtreg_absorb_partial' = `nwxtreg_absorb'.partial_out("`vars' ")	
-	mata st_local("var_partial",invtokens(st_tempname(cols(tokens("`vars'")))))	
-	mata st_store(`nwxtreg_absorb'.sample, st_addvar("double",tokens("`var_partial'")),"`touse'", `nwxtreg_absorb_partial')
+	if "`noii'" != "" {
+		noi disp "Before partial out"
+		noi sum `vars'
+	}
 	
+	mata: `nwxtreg_absorb_partial' = `nwxtreg_absorb'.partial_out("`vars' ")	
+	///mata st_local("var_partial",invtokens("abs":+st_tempname(cols(tokens("`vars'")))))	
+	mata st_local("var_partial",invtokens("abs":+strofreal(1..cols(tokens("`vars'")))))	
+	mata st_store(`nwxtreg_absorb'.sample, st_addvar("double",tokens("`var_partial'")),"`touse'", `nwxtreg_absorb_partial')
+	if "`noii'" != "" {
+		noi disp "After partial out"
+		noi mata mean(`nwxtreg_absorb_partial')
+		noi sum `var_partial'
+	}
+	if "`partialonly'" != "" {
+		error 199
+	}
 	mata mata drop `nwxtreg_absorb_partial' `nwxtreg_absorb'
-
 	return local absorb_vars "`var_partial'"
 end
 

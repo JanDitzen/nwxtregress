@@ -472,9 +472,13 @@ Email: zekhnini@msu.edu
 Web: https://sites.google.com/view/moradzekhnini/home
 
 ## About:
-This version 0.131 as of 24.01.2023
+This version 0.2 as of 20.02.2023
 
 ## Changelog:
+Version 0.2
+- bug when absorb() option used fixed
+- bug when non sparse matrix used with estat fixed
+
 Version 0.132
 - bug when absorb() used fixed, sometimes variables were not updated correctly.
 

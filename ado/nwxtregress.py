@@ -32,7 +32,8 @@ def nwpython_lud(data_n,n_n,rgrid_n,output_n):
 		data_sp = csc_matrix((dta_x,(rows,cols)),shape = (n))	
 
 		data_sp.setdiag(1,k=0)		
-		lud = sla.spilu(data_sp)
+		#lud = sla.spilu(data_sp)
+		lud = sla.splu(data_sp)
 		Ai = lud.L+lud.U-identity(n[0])	
 		detmi = np.array(Ai.diagonal())
 		detmi[detmi<=0] = 1

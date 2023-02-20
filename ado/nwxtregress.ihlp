@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.132 - 24. January 2023}
+{hi:help nwxtregress}{right: v. 0.2 - 20. February 2023}
 
 {hline}
 {title:Title}
@@ -580,7 +580,10 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {p 4}Web: {browse "https://sites.google.com/view/moradzekhnini/home"}{p_end}
 
 {title:Changelog}
-{p 4 4}{ul:Version 0.131}{p_end}
+{p 4 4}{ul:Version 0.2}{p_end}
+{p 8 8}- bug when absorb() used fixed{p_end}
+{p 8 8}- bug when non sparse spatial weight matrix used, estat did not work{p_end}
+{p 4 4}{ul:Version 0.132}{p_end}
 {p 8 8}- bug when absorb() used fixed, sometimes variables were not updated{p_end}
 {p 4 4}{ul:Version 0.131}{p_end}
 {p 8 8}- moved python code to nwxtregress.py{p_end}

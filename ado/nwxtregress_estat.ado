@@ -42,9 +42,6 @@ program define impact, rclass
 		if "`seed'" != "" {
 			set seed `seed'
 		}
-		
-		
-
 
 		mata asarray(`array',"usepython",("`python'"!=""))
 		
