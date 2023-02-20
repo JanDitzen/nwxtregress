@@ -430,6 +430,10 @@ predict residuals, residual
 
 # 7. References
 
+Please cite as:
+
+Ditzen, Grieser, Zekhnini. (2023). nwxtregress - network regression in Stata.
+
 # 8. How to install
 
 
