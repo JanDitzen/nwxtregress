@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.2 - 20. February 2023}
+{hi:help nwxtregress}{right: v. 0.3 - 12. November 2023}
 
 {hline}
 {title:Title}
@@ -76,7 +76,9 @@ see {help nwxtregress##DIE: calculation of total, direct and indirect effects}.{
 {synopt:{opt frame(name)}}name of the frame for weight matrix data.{p_end}
 {synopt:{opt sparse}}if weight matrix is sparse.{p_end}
 {synopt:{opt timesparse}}weight matrix is sparse and varying over time.{p_end}
-{synopt:{opt id(string)}}vector of IDs if W is a non sparse mata matrix.{p_end}
+{synopt:{opt id(string)}}vector of IDs if W is a non sparse mata matrix 
+or variable names for Time, Origin and Destination variables 
+when using a (time)sparse weight matrix from a frame.{p_end}
 {synopt:{opt norm:alize(string)}}which normalization for spatial weight matrix to use.{p_end}
 {synopt:{opt zero(real)}}how to treat zeros in spatial weight matrix.{p_end}
 {synoptline}
@@ -269,7 +271,9 @@ To remove zeros use either {cmd:zero(0)} or {cmd:zero(.)}.{p_end}
 {opt timesparse} weight matrix is sparse and varying over time. As sparse but first column includes the time period. Implies option {cmd:mata}.
 
 {phang}
-{opt id(string)}  vector of IDs if W is a non sparse mata matrix.
+{opt id(string)}  vector of IDs if W is a non sparse mata matrix 
+or variable names for Time, Origin and Destination variables 
+when using a (time)sparse weight matrix from a frame.
 
 {phang}
 {opt norm:alization(string)} which normalization to use for spatial weight matrix.
@@ -580,6 +584,8 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {p 4}Web: {browse "https://sites.google.com/view/moradzekhnini/home"}{p_end}
 
 {title:Changelog}
+{p 4 4}{ul:Version 0.2}{p_end}
+{p 8 8}- support reghdfe v. 6.12{p_end}
 {p 4 4}{ul:Version 0.2}{p_end}
 {p 8 8}- bug when absorb() used fixed{p_end}
 {p 8 8}- bug when non sparse spatial weight matrix used, estat did not work{p_end}

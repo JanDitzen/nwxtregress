@@ -476,9 +476,12 @@ Email: zekhnini@msu.edu
 Web: https://sites.google.com/view/moradzekhnini/home
 
 ## About:
-This version 0.2 as of 20.02.2023
+This version 0.3 as of 13.11.2023
 
 ## Changelog:
+Version 0.3
+- support for reghdfe v. 6.12
+
 Version 0.2
 - bug when absorb() option used fixed
 - bug when non sparse matrix used with estat fixed

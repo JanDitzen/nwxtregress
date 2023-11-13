@@ -1,8 +1,10 @@
 *! nwxtregress
-*! v. 0.2
-*! 16.02.2023 - see https://janditzen.github.io/nwxtregress/
+*! v. 0.21
+*! 17.04.2023 - see https://janditzen.github.io/nwxtregress/
 /*
 Change Log:
+V 0.21
+- when using absorb option spatial lag of dependent variable showed temporary variable name
 V 0.2
 - 20.02.2023 - fixed bug in absorb() option
 - 16.02.2023 - fixed bug when using non sparse weight matrices and estat
@@ -18,7 +20,10 @@ V 0.13
 - 01.12.2022 - fix if spatial weight matrix was empty and python used
 */
 
-
+/*
+This file contains all Stata programs.
+mata programs are contained in lnwxtregress
+*/
 
 capture program drop nwxtregress
 program define nwxtregress, eclass
@@ -66,8 +71,8 @@ syntax [varlist(ts min=2)] [if] 	, 	[	///
 		}
 
 		if "`version'" != "" {
-			local version 0.2
-			noi disp "This is version `version' - 20.02.2023"
+			local version 0.3
+			noi disp "This is version `version' - 13.11.2023"
 			ereturn clear			
 			ereturn local version "`version'"
 			exit
@@ -327,6 +332,7 @@ program define _nwxtreg, eclass
 					}
 					local sar = 0
 					local sdmindic sdm
+					local sdmsar "SDM"
 				}
 				
 				*** Use sparse matrices internally
@@ -363,7 +369,8 @@ program define _nwxtreg, eclass
 				
 				
 			}
-			
+			///if "`absorb'" != "" mata asarray(`asarray',"Wy_order",(asarray(`asarray',"Wy_order")[1],"`spatial_name'"))
+
 			output_table_main `asarray', varnames("`indepdepvars_names'") touse(`touse') idvar(`idvar') tvar(`tvar_o') cmdname("Spatial `sdmsar'") warray("`nwxtreg_Warray'") `sdmindic'
 
 			ereturn local estat_cmd "nwxtregress_estat"
@@ -913,18 +920,16 @@ end
 // -------------------------------------------------------------------------------------------------
 cap program drop nwxtreg_absorb_prog
 program define nwxtreg_absorb_prog, rclass
-	syntax anything(name=absorb) , [KEEPsingeltons TRACEhdfeopt partialonly] touse(string) vars(string) 
+	syntax anything(name=absorb) , [ TRACEhdfeopt partialonly] touse(string) vars(string) [donotoverwrite]
 
 	local singeltons = 0
 	if "`keepsingeltons'" == "" local singeltons = 1
 
-	local tracehdfe = -1
-	if "`tracehdfeopt'" != "" local tracehdfe = 1
-
-	if "`tracehdfeopt'" != "" local noii noi
+	local tracehdfe = 0
+		if "`tracehdfeopt'" != "" local noii noi
 
 	*** tempnames for mata objects
-	tempname nwxtreg_absorb nwxtreg_absorb_partial
+	tempname nwxtreg_absorb 
 
 	cap which reghdfe
 	loc rc = _rc
@@ -935,36 +940,48 @@ program define nwxtreg_absorb_prog, rclass
 		di as err "  click {stata ssc install ftools} to install from SSC"
 		exit 199
 	}
-	*noi disp "absorb: `absorb' -- `singeltons'"
-	cap `noii' mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
-	if _rc {
-		cap reghdfe, check
-		cap mata: `nwxtreg_absorb' = fixed_effects("`absorb'", "`touse'", "", "", `singeltons', `tracehdfe')
-		if _rc {
-			di as err "{bf:reghdfe} Mata library not found or error in {cmd:reghdfe}."
-			exit 199
-		}
+	cap include "reghdfe.mata", adopath
+	cap {
+		mata: `nwxtreg_absorb' = FixedEffects()
+		mata: `nwxtreg_absorb'.absvars = "`absorb'"
+		mata: `nwxtreg_absorb'.tousevar = "`touse'"
+		mata: `nwxtreg_absorb'.init()
+		mata: `nwxtreg_absorb'.partial_out("`vars' ",0, 0)	
 	}
-	if "`noii'" != "" {
-		noi disp "Before partial out"
-		noi sum `vars'
+	if _rc {
+		di as err "{bf:reghdfe} Mata library not found or error in {cmd:reghdfe}."
+		exit 199
 	}
 	
-	mata: `nwxtreg_absorb_partial' = `nwxtreg_absorb'.partial_out("`vars' ")	
-	///mata st_local("var_partial",invtokens("abs":+st_tempname(cols(tokens("`vars'")))))	
-	mata st_local("var_partial",invtokens("abs":+strofreal(1..cols(tokens("`vars'")))))	
-	mata st_store(`nwxtreg_absorb'.sample, st_addvar("double",tokens("`var_partial'")),"`touse'", `nwxtreg_absorb_partial')
 	if "`noii'" != "" {
-		noi disp "After partial out"
-		noi mata mean(`nwxtreg_absorb_partial')
+		noi disp "Before reghdfe partial out"
+		noi sum `vars'
+	}	
+	
+	mata st_local("var_partial",invtokens("abs":+strofreal(1..cols(tokens("`vars'")))))	
+	mata st_store(`nwxtreg_absorb'.sample, st_addvar("double",tokens("`var_partial'")),"`touse'", `nwxtreg_absorb'.solution.data)
+	if "`noii'" != "" {
+		noi disp "After reghdfe partial out"
+		noi mata mean(`nwxtreg_absorb'.solution.data)
 		noi sum `var_partial'
 	}
 	if "`partialonly'" != "" {
 		error 199
 	}
-	mata mata drop `nwxtreg_absorb_partial' `nwxtreg_absorb'
+	mata mata drop  `nwxtreg_absorb'
+	
+	if "`donotoverwrite'" == "" {
+		local i = 1
+		foreach source in `var_partial' {
+			local aim = word("`vars'",`i')
+			replace `aim' = `source'
+			local i = 1 + `i'
+		}
+	}
+
 	return local absorb_vars "`var_partial'"
 end
+
 
 // -------------------------------------------------------------------------------------------------
 // python check
