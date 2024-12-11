@@ -1,8 +1,10 @@
 *! nwxtregress
-*! v. 0.21
+*! v. 0.22
 *! 17.04.2023 - see https://janditzen.github.io/nwxtregress/
 /*
 Change Log:
+v 0.4
+- error in direct and indirect effects SEs fixed
 V 0.21
 - when using absorb option spatial lag of dependent variable showed temporary variable name
 V 0.2
@@ -71,8 +73,8 @@ syntax [varlist(ts min=2)] [if] 	, 	[	///
 		}
 
 		if "`version'" != "" {
-			local version 0.3
-			noi disp "This is version `version' - 13.11.2023"
+			local version 0.4
+			noi disp "This is version `version' - 11.12.2024"
 			ereturn clear			
 			ereturn local version "`version'"
 			exit

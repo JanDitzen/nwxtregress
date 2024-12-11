@@ -1,6 +1,6 @@
 {smcl}
 {hline}
-{hi:help nwxtregress}{right: v. 0.3 - 12. November 2023}
+{hi:help nwxtregress}{right: v. 0.4 - 11. December 2024}
 
 {hline}
 {title:Title}
@@ -584,6 +584,8 @@ the PRIN project Hi-Di NET - Econometric Analysis of High Dimensional Models
 {p 4}Web: {browse "https://sites.google.com/view/moradzekhnini/home"}{p_end}
 
 {title:Changelog}
+{p 4 4}{ul:Version 0.4}{p_end}
+{p 8 8}- error in SE for direct and indirect effects corrected.{p_end}
 {p 4 4}{ul:Version 0.2}{p_end}
 {p 8 8}- support reghdfe v. 6.12{p_end}
 {p 4 4}{ul:Version 0.2}{p_end}
