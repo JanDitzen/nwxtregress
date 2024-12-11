@@ -476,9 +476,12 @@ Email: zekhnini@msu.edu
 Web: https://sites.google.com/view/moradzekhnini/home
 
 ## About:
-This version 0.3 as of 13.11.2023
+This version 0.4 as of 11.12.2024
 
 ## Changelog:
+Version 0.4
+- error in SE of direct and indirect effects corrected
+
 Version 0.3
 - support for reghdfe v. 6.12
 
